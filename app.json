@@ -6,14 +6,20 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "calsnap",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0A0A0F"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "CalSnap needs camera access to photograph your food for nutrition analysis.",
+        "NSPhotoLibraryUsageDescription": "CalSnap needs photo library access to select food photos for nutrition analysis.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "yes"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,18 +28,36 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "CalSnap",
+      "shortName": "CalSnap",
+      "backgroundColor": "#0A0A0F",
+      "themeColor": "#0A0A0F"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-font",
+      "expo-camera",
+      "expo-image-picker",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "499a6055-b34c-4ea8-9666-de1512d17e02"
+      }
     }
   }
 }
