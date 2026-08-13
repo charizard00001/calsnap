@@ -4,6 +4,18 @@ A path from the current local-only prototype to a fully-fledged, real-user-ready
 
 **What changed since v1:** every service in the stack turns out to have an official CLI, so nothing needed to be compromised. Added a researched fallback AI provider (OpenRouter) alongside Gemini. The design section went from "tasteful" to actually crazy — every interactive element gets a spec.
 
+**What changed in v3:** locked in a distribution decision — web first.
+
+---
+
+## 0. Distribution strategy
+
+**Primary target: the web app**, already live on Vercel (`calsnap-chi.vercel.app`) and installable today via Safari → Add to Home Screen (the PWA manifest is already in place). This means the web build is the *real* product surface, not a demo — every backend and security fix (the Gemini key exposure especially) is now urgent, not "eventually," because the web app is genuinely the thing real users would touch first.
+
+**Testing target during development: Expo Go.** Free, no Apple account beyond a normal one, no build step — `npx expo start`, scan the QR code, the real native app runs on your iPhone with full camera/haptics. This is how we verify native behavior without touching TestFlight or the $99/yr Apple Developer Program, which stays out of scope until there's a reason to pay for it (outside testers, App Store release).
+
+**What this reorders in the roadmap below:** Phase 1 (the security fixes) matters immediately since the web app is the live product now. Native-specific polish (the EAS build pipeline, App Store submission in Phase 5) moves to "later, deliberately" rather than "next" — it's not blocked, it's just not where the near-term effort goes.
+
 ---
 
 ## 1. The free-tier stack — and how I operate it
