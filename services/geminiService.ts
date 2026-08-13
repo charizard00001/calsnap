@@ -1,18 +1,11 @@
 import type { NutritionResult } from '@/types';
 import * as ImageManipulator from 'expo-image-manipulator';
 
-const API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-
-function getApiKey(): string {
-  const key = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-  if (!key || key === 'your_key_here') {
-    throw new Error(
-      'Gemini API key not configured. Set EXPO_PUBLIC_GEMINI_API_KEY in your .env file.'
-    );
-  }
-  return key;
-}
+// The server proxy (api/analyze.ts) holds both the Gemini and OpenRouter
+// keys — the client never sees either. Override for local dev against
+// `vercel dev` via EXPO_PUBLIC_API_BASE_URL; defaults to production.
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL || 'https://calsnap-chi.vercel.app';
 
 /**
  * Compress and resize image to max 800px width, JPEG quality 0.7.
@@ -30,104 +23,37 @@ export async function preprocessImage(imageUri: string): Promise<string> {
   return manipulated.base64;
 }
 
-function buildPrompt(userNote: string): string {
-  return `You are a nutrition expert AI. Analyze the food in this image.
-The user has provided this note: "${userNote}" (use this to adjust portion size if mentioned).
-Return ONLY a valid JSON object with this exact structure, no extra text, no markdown:
-{
-  "foodName": "string",
-  "description": "string",
-  "servingSize": "string",
-  "calories": number,
-  "protein": number,
-  "carbs": number,
-  "fat": number,
-  "confidence": "low" | "medium" | "high"
-}
-If you cannot identify the food, return confidence as "low" and provide best estimates.`;
+function isRetryable(status: number): boolean {
+  // 5xx (including our proxy's 502 when both providers failed) is worth one
+  // retry; 4xx means the request itself was bad and will fail again.
+  return status >= 500;
 }
 
-function parseResponse(text: string): NutritionResult {
-  // Strip markdown code fences if present
-  let cleaned = text.trim();
-  if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-  }
-
-  const parsed = JSON.parse(cleaned);
-
-  // Validate required fields
-  if (
-    typeof parsed.foodName !== 'string' ||
-    typeof parsed.calories !== 'number' ||
-    typeof parsed.protein !== 'number' ||
-    typeof parsed.carbs !== 'number' ||
-    typeof parsed.fat !== 'number'
-  ) {
-    throw new Error('Invalid nutrition data received from AI');
-  }
-
-  return {
-    foodName: parsed.foodName,
-    description: parsed.description || '',
-    servingSize: parsed.servingSize || 'Unknown',
-    calories: Math.round(parsed.calories),
-    protein: Math.round(parsed.protein),
-    carbs: Math.round(parsed.carbs),
-    fat: Math.round(parsed.fat),
-    confidence: ['low', 'medium', 'high'].includes(parsed.confidence)
-      ? parsed.confidence
-      : 'low',
-  };
-}
-
-async function callGeminiAPI(
+async function callAnalyzeEndpoint(
   imageBase64: string,
   userNote: string
 ): Promise<NutritionResult> {
-  const apiKey = getApiKey();
-  const prompt = buildPrompt(userNote);
-
-  const response = await fetch(`${API_URL}?key=${apiKey}`, {
+  const response = await fetch(`${API_BASE_URL}/api/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            {
-              inline_data: {
-                mime_type: 'image/jpeg',
-                data: imageBase64,
-              },
-            },
-          ],
-        },
-      ],
-    }),
+    body: JSON.stringify({ imageBase64, userNote }),
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(
-      `Gemini API error (${response.status}): ${errorBody.slice(0, 200)}`
-    );
+    const body = await response.json().catch(() => ({}));
+    const message = body.error || `Analysis request failed (${response.status})`;
+    const error = new Error(message) as Error & { status: number };
+    error.status = response.status;
+    throw error;
   }
 
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!text) {
-    throw new Error('No response text from Gemini API');
-  }
-
-  return parseResponse(text);
+  return response.json();
 }
 
 /**
  * Main entry point: analyze a food image and return nutrition data.
- * Preprocesses the image and retries once on failure.
+ * Preprocesses the image and retries once, but only on a transient
+ * (network or 5xx) failure — a bad request will fail identically twice.
  */
 export async function analyzeFoodImage(
   imageUri: string,
@@ -136,11 +62,14 @@ export async function analyzeFoodImage(
   const imageBase64 = await preprocessImage(imageUri);
 
   try {
-    return await callGeminiAPI(imageBase64, userNote);
+    return await callAnalyzeEndpoint(imageBase64, userNote);
   } catch (firstError) {
-    // Retry once
+    const status = (firstError as { status?: number }).status;
+    if (status !== undefined && !isRetryable(status)) {
+      throw firstError;
+    }
     try {
-      return await callGeminiAPI(imageBase64, userNote);
+      return await callAnalyzeEndpoint(imageBase64, userNote);
     } catch (retryError) {
       if (retryError instanceof Error) {
         throw new Error(`Analysis failed: ${retryError.message}`);

@@ -19,7 +19,7 @@
         "NSPhotoLibraryUsageDescription": "CalSnap needs photo library access to select food photos for nutrition analysis.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "bundleIdentifier": "yes"
+      "bundleIdentifier": "com.calsnap.app"
     },
     "android": {
       "adaptiveIcon": {
