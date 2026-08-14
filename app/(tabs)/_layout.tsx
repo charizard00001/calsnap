@@ -16,11 +16,11 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.jjkPurple,
+        tabBarActiveTintColor: Colors.accentPrimary,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {
           backgroundColor: Colors.cardBg + 'EE',
-          borderTopColor: Colors.jjkPurple + '20',
+          borderTopColor: Colors.accentPrimary + '20',
           borderTopWidth: 1,
           height: 85,
           paddingBottom: 25,

@@ -19,10 +19,10 @@ export default function NutritionResultCard({
     grade === 'S'
       ? Colors.success
       : grade === 'A'
-      ? Colors.tanjiroBlue
+      ? Colors.accentCool
       : grade === 'B'
-      ? Colors.zenitsuYellow
-      : Colors.demonRed;
+      ? Colors.accentGold
+      : Colors.accentHot;
 
   const updateField = (field: keyof NutritionResult, value: string) => {
     const numFields = ['calories', 'protein', 'carbs', 'fat'] as const;
@@ -54,31 +54,31 @@ export default function NutritionResultCard({
       {/* Stats Grid */}
       <View style={styles.statsGrid}>
         <StatRow
-          label="⚡ Cursed Energy"
+          label="⚡ Calories"
           value={String(result.calories)}
           unit="kcal"
-          color={Colors.demonOrange}
+          color={Colors.accentWarm}
           onChangeText={(v) => updateField('calories', v)}
         />
         <StatRow
           label="💪 STR (Protein)"
           value={String(result.protein)}
           unit="g"
-          color={Colors.demonRed}
+          color={Colors.accentHot}
           onChangeText={(v) => updateField('protein', v)}
         />
         <StatRow
           label="⚡ AGI (Carbs)"
           value={String(result.carbs)}
           unit="g"
-          color={Colors.zenitsuYellow}
+          color={Colors.accentGold}
           onChangeText={(v) => updateField('carbs', v)}
         />
         <StatRow
           label="🛡️ DEF (Fat)"
           value={String(result.fat)}
           unit="g"
-          color={Colors.tanjiroBlue}
+          color={Colors.accentCool}
           onChangeText={(v) => updateField('fat', v)}
         />
       </View>
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.jjkPurple + '30',
+    borderColor: Colors.accentPrimary + '30',
   },
   header: {
     flexDirection: 'row',

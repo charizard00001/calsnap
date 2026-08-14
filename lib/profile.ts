@@ -3,7 +3,7 @@ import { getUserGoals, saveUserGoals } from '@/utils/storage';
 import { supabase } from './supabase';
 
 export const DEFAULT_GOALS: UserGoals = {
-  name: 'Sorcerer',
+  name: 'Friend',
   calorieGoal: 2000,
   proteinGoal: 150,
   installDate: new Date().toISOString(),

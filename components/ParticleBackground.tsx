@@ -19,7 +19,7 @@ interface Particle {
 }
 
 function generateParticles(width: number, height: number): Particle[] {
-  const colors = [Colors.jjkPurple, Colors.jjkBlue, Colors.tanjiroBlue];
+  const colors = [Colors.accentPrimary, Colors.accentSecondary, Colors.accentCool];
   return Array.from({ length: PARTICLE_COUNT }, () => ({
     x: Math.random() * width,
     baseY: Math.random() * height,

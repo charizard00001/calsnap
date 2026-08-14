@@ -1,67 +1,67 @@
 export const Colors = {
   // Primary backgrounds
-  primaryBg: '#0A0A0F',
-  secondaryBg: '#0F0F1A',
-  cardBg: '#13131F',
+  primaryBg: '#0B0B10',
+  secondaryBg: '#111117',
+  cardBg: '#17171F',
 
   // Accent colors
-  jjkPurple: '#7B2FBE',
-  jjkBlue: '#4361EE',
-  demonRed: '#FF3A3A',
-  demonOrange: '#FF6B35',
-  tanjiroBlue: '#00D4FF',
-  zenitsuYellow: '#FFD60A',
-  gojoWhite: '#E8E8FF',
+  accentPrimary: '#FF4D7A', // vivid coral-pink
+  accentSecondary: '#12D8C5', // electric teal
+  accentHot: '#FF3D5A', // hot red — over-limit / danger states
+  accentWarm: '#FF9F45', // amber-orange
+  accentCool: '#22D3EE', // electric cyan
+  accentGold: '#FFD23F', // gold-yellow
+  accentLight: '#F5F0FF', // soft lavender-white, rare accent
 
   // Status colors
-  success: '#00FF88',
-  warning: '#FFD60A',
-  danger: '#FF3A3A',
+  success: '#2BE38B',
+  warning: '#FFD23F',
+  danger: '#FF3D5A',
 
   // Text
-  textPrimary: '#E8E8FF',
-  textSecondary: '#9999BB',
-  textMuted: '#555577',
+  textPrimary: '#F5F5FA',
+  textSecondary: '#9C9CB8',
+  textMuted: '#55556E',
 };
 
 export const Gradients = {
-  purpleToRed: ['#7B2FBE', '#FF3A3A'] as const,
-  purpleToBlue: ['#7B2FBE', '#4361EE'] as const,
-  blueToTeal: ['#4361EE', '#00D4FF'] as const,
-  redToOrange: ['#FF3A3A', '#FF6B35'] as const,
-  darkCard: ['#13131F', '#0F0F1A'] as const,
-  voidBg: ['#0A0A0F', '#0F0F1A', '#0A0A0F'] as const,
+  purpleToRed: [Colors.accentPrimary, Colors.accentHot] as const,
+  purpleToBlue: [Colors.accentPrimary, Colors.accentSecondary] as const,
+  blueToTeal: [Colors.accentSecondary, Colors.accentCool] as const,
+  redToOrange: [Colors.accentHot, Colors.accentWarm] as const,
+  darkCard: [Colors.cardBg, Colors.secondaryBg] as const,
+  voidBg: [Colors.primaryBg, Colors.secondaryBg, Colors.primaryBg] as const,
 };
 
 export const MacroThemes = {
   protein: {
-    label: 'STR',
-    fullLabel: 'Strength',
-    color: Colors.demonRed,
-    gradient: ['#FF3A3A', '#FF6B35'] as const,
-    emoji: '💪',
+    label: 'Protein',
+    fullLabel: 'Protein',
+    color: Colors.accentPrimary,
+    gradient: [Colors.accentPrimary, Colors.accentHot] as const,
+    emoji: '🥩',
   },
   carbs: {
-    label: 'AGI',
-    fullLabel: 'Agility',
-    color: Colors.zenitsuYellow,
-    gradient: ['#FFD60A', '#FF6B35'] as const,
-    emoji: '⚡',
+    label: 'Carbs',
+    fullLabel: 'Carbs',
+    color: Colors.accentGold,
+    gradient: [Colors.accentGold, Colors.accentWarm] as const,
+    emoji: '🌾',
   },
   fat: {
-    label: 'DEF',
-    fullLabel: 'Defense',
-    color: Colors.tanjiroBlue,
-    gradient: ['#00D4FF', '#4361EE'] as const,
-    emoji: '🛡️',
+    label: 'Fat',
+    fullLabel: 'Fat',
+    color: Colors.accentCool,
+    gradient: [Colors.accentCool, Colors.accentSecondary] as const,
+    emoji: '🥑',
   },
 };
 
 export const MealTypeLabels: Record<string, { label: string; rank: string }> = {
-  breakfast: { label: 'Breakfast', rank: 'First Form' },
-  lunch: { label: 'Lunch', rank: 'Second Form' },
-  dinner: { label: 'Dinner', rank: 'Third Form' },
-  snack: { label: 'Snack', rank: 'Side Technique' },
+  breakfast: { label: 'Breakfast', rank: 'Morning' },
+  lunch: { label: 'Lunch', rank: 'Midday' },
+  dinner: { label: 'Dinner', rank: 'Evening' },
+  snack: { label: 'Snack', rank: 'Anytime' },
 };
 
 export const Spacing = {

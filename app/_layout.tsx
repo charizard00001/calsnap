@@ -30,8 +30,8 @@ const CalSnapDarkTheme = {
     background: Colors.primaryBg,
     card: Colors.cardBg,
     text: Colors.textPrimary,
-    border: Colors.jjkPurple + '30',
-    primary: Colors.jjkPurple,
+    border: Colors.accentPrimary + '30',
+    primary: Colors.accentPrimary,
   },
 };
 

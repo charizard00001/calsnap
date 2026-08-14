@@ -112,13 +112,13 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 120,
-    backgroundColor: Colors.demonRed + '30',
+    backgroundColor: Colors.accentHot + '30',
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   deleteText: {
-    color: Colors.demonRed,
+    color: Colors.accentHot,
     fontWeight: '700',
     fontSize: FontSizes.md,
   },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     padding: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.jjkPurple + '20',
+    borderColor: Colors.accentPrimary + '20',
   },
   photoContainer: {
     width: 60,
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   rank: {
     fontSize: FontSizes.xs,
-    color: Colors.jjkPurple,
+    color: Colors.accentPrimary,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginTop: 2,

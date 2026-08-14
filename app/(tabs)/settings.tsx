@@ -113,12 +113,12 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Sorcerer Profile</Text>
-        <Text style={styles.subtitle}>Adjust your training parameters</Text>
+        <Text style={styles.title}>Your Profile</Text>
+        <Text style={styles.subtitle}>Adjust your daily goals</Text>
 
         {/* Name */}
         <Animated.View entering={FadeInUp.duration(600)}>
-          <SettingsRow label="Sorcerer Name" color={Colors.jjkPurple}>
+          <SettingsRow label="Display Name" color={Colors.accentPrimary}>
             <TextInput
               style={styles.input}
               value={name}
@@ -132,7 +132,7 @@ export default function SettingsScreen() {
 
         {/* Calorie Goal */}
         <Animated.View entering={FadeInUp.delay(100).duration(600)}>
-          <SettingsRow label="Daily Cursed Energy Limit" color={Colors.demonOrange}>
+          <SettingsRow label="Daily Calorie Goal" color={Colors.accentWarm}>
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.input}
@@ -150,7 +150,7 @@ export default function SettingsScreen() {
 
         {/* Protein Goal */}
         <Animated.View entering={FadeInUp.delay(200).duration(600)}>
-          <SettingsRow label="Strength Absorption Target" color={Colors.demonRed}>
+          <SettingsRow label="Daily Protein Goal" color={Colors.accentHot}>
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.input}
@@ -171,20 +171,20 @@ export default function SettingsScreen() {
           <Text style={styles.dangerTitle}>☠️ Danger Zone</Text>
 
           <Pressable onPress={handleSignOut} style={styles.dangerButton}>
-            <View style={[styles.dangerBorder, { borderColor: Colors.jjkBlue }]} />
-            <Text style={[styles.dangerButtonText, { color: Colors.jjkBlue }]}>Sign Out</Text>
+            <View style={[styles.dangerBorder, { borderColor: Colors.accentSecondary }]} />
+            <Text style={[styles.dangerButtonText, { color: Colors.accentSecondary }]}>Sign Out</Text>
             <Text style={styles.dangerButtonSub}>Your data stays safe on your account</Text>
           </Pressable>
 
           <Pressable onPress={handleClearToday} style={styles.dangerButton}>
-            <View style={[styles.dangerBorder, { borderColor: Colors.demonOrange }]} />
+            <View style={[styles.dangerBorder, { borderColor: Colors.accentWarm }]} />
             <Text style={styles.dangerButtonText}>Clear Today's Data</Text>
             <Text style={styles.dangerButtonSub}>Removes all meals logged today</Text>
           </Pressable>
 
           <Pressable onPress={handleClearAll} style={styles.dangerButton}>
-            <View style={[styles.dangerBorder, { borderColor: Colors.demonRed }]} />
-            <Text style={[styles.dangerButtonText, { color: Colors.demonRed }]}>
+            <View style={[styles.dangerBorder, { borderColor: Colors.accentHot }]} />
+            <Text style={[styles.dangerButtonText, { color: Colors.accentHot }]}>
               Clear All History
             </Text>
             <Text style={styles.dangerButtonSub}>
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   dangerTitle: {
     fontSize: FontSizes.lg,
     fontWeight: '800',
-    color: Colors.demonRed,
+    color: Colors.accentHot,
     marginBottom: Spacing.md,
   },
   dangerButton: {
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   dangerButtonText: {
     fontSize: FontSizes.md,
     fontWeight: '700',
-    color: Colors.demonOrange,
+    color: Colors.accentWarm,
   },
   dangerButtonSub: {
     fontSize: FontSizes.sm,

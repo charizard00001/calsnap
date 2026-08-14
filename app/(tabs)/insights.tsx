@@ -71,15 +71,15 @@ export default function InsightsScreen() {
         {/* Stats summary */}
         <Animated.View entering={FadeInUp.duration(600)} style={styles.summaryRow}>
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Avg Cursed Energy</Text>
-            <Text style={[styles.summaryValue, { color: Colors.demonOrange }]}>
+            <Text style={styles.summaryLabel}>Avg Calories</Text>
+            <Text style={[styles.summaryValue, { color: Colors.accentWarm }]}>
               {avgCalories}
             </Text>
             <Text style={styles.summaryUnit}>kcal/day</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Strength Accumulation</Text>
-            <Text style={[styles.summaryValue, { color: Colors.demonRed }]}>
+            <Text style={[styles.summaryValue, { color: Colors.accentHot }]}>
               {avgProtein}
             </Text>
             <Text style={styles.summaryUnit}>g protein/day</Text>
@@ -88,7 +88,7 @@ export default function InsightsScreen() {
 
         {/* Streak */}
         <Animated.View entering={FadeInUp.delay(200).duration(600)} style={styles.streakCard}>
-          <Text style={styles.streakLabel}>Consecutive Training Days</Text>
+          <Text style={styles.streakLabel}>Day Streak</Text>
           <View style={styles.streakRow}>
             <Text style={styles.streakNumber}>{streak}</Text>
             <Text style={styles.streakEmoji}>
@@ -131,9 +131,9 @@ export default function InsightsScreen() {
                         {
                           height: `${Math.max(heightPct, 2)}%` as any,
                           backgroundColor: isOverGoal
-                            ? Colors.demonRed
+                            ? Colors.accentHot
                             : log.totalCalories > 0
-                            ? Colors.jjkPurple
+                            ? Colors.accentPrimary
                             : Colors.textMuted + '30',
                         },
                       ]}
@@ -161,9 +161,9 @@ export default function InsightsScreen() {
             </View>
           )}
           {worstDay && worstDay.totalCalories > 0 && (
-            <View style={[styles.highlightCard, { borderColor: Colors.demonRed + '40' }]}>
+            <View style={[styles.highlightCard, { borderColor: Colors.accentHot + '40' }]}>
               <Text style={styles.highlightLabel}>Peak Output</Text>
-              <Text style={[styles.highlightValue, { color: Colors.demonRed }]}>
+              <Text style={[styles.highlightValue, { color: Colors.accentHot }]}>
                 {worstDay.totalCalories} kcal
               </Text>
               <Text style={styles.highlightDate}>{worstDay.date}</Text>
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.jjkPurple + '20',
+    borderColor: Colors.accentPrimary + '20',
   },
   summaryLabel: {
     fontSize: FontSizes.xs,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.zenitsuYellow + '30',
+    borderColor: Colors.accentGold + '30',
     marginBottom: Spacing.md,
   },
   streakLabel: {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   streakNumber: {
     fontSize: FontSizes.display,
     fontWeight: '900',
-    color: Colors.zenitsuYellow,
+    color: Colors.accentGold,
     fontVariant: ['tabular-nums'],
   },
   streakEmoji: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
   streakBonus: {
     fontSize: FontSizes.sm,
-    color: Colors.demonRed,
+    color: Colors.accentHot,
     fontWeight: '700',
     marginTop: 4,
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.jjkPurple + '15',
+    borderColor: Colors.accentPrimary + '15',
   },
   barColumn: {
     flex: 1,

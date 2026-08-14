@@ -114,7 +114,7 @@ export default function CrazyButton({
   );
 }
 
-const Gradients_purpleToBlue = [Colors.jjkPurple, Colors.jjkBlue] as const;
+const Gradients_purpleToBlue = [Colors.accentPrimary, Colors.accentSecondary] as const;
 
 const styles = StyleSheet.create({
   shadowWrap: {

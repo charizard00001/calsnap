@@ -29,8 +29,8 @@ export default function HistoryScreen() {
     if (log.totalCalories === 0) return Colors.textMuted;
     const pct = log.totalCalories / goals.calorieGoal;
     if (pct <= 0.9) return Colors.success;
-    if (pct <= 1.0) return Colors.zenitsuYellow;
-    return Colors.demonRed;
+    if (pct <= 1.0) return Colors.accentGold;
+    return Colors.accentHot;
   };
 
   return (
@@ -41,8 +41,8 @@ export default function HistoryScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Battle Records</Text>
-        <Text style={styles.subtitle}>Last 30 days of training</Text>
+        <Text style={styles.title}>History</Text>
+        <Text style={styles.subtitle}>Last 30 days</Text>
 
         {/* Calendar grid */}
         <Animated.View entering={FadeInUp.duration(600)} style={styles.calendarGrid}>
@@ -87,10 +87,10 @@ export default function HistoryScreen() {
             </Text>
 
             <View style={styles.detailStats}>
-              <StatBadge label="Energy" value={`${selectedLog.totalCalories} kcal`} color={Colors.demonOrange} />
-              <StatBadge label="STR" value={`${selectedLog.totalProtein}g`} color={Colors.demonRed} />
-              <StatBadge label="AGI" value={`${selectedLog.totalCarbs}g`} color={Colors.zenitsuYellow} />
-              <StatBadge label="DEF" value={`${selectedLog.totalFat}g`} color={Colors.tanjiroBlue} />
+              <StatBadge label="Energy" value={`${selectedLog.totalCalories} kcal`} color={Colors.accentWarm} />
+              <StatBadge label="STR" value={`${selectedLog.totalProtein}g`} color={Colors.accentHot} />
+              <StatBadge label="AGI" value={`${selectedLog.totalCarbs}g`} color={Colors.accentGold} />
+              <StatBadge label="DEF" value={`${selectedLog.totalFat}g`} color={Colors.accentCool} />
             </View>
 
             {selectedLog.meals.length > 0 ? (
@@ -98,7 +98,7 @@ export default function HistoryScreen() {
                 <MealCard key={meal.id} meal={meal} />
               ))
             ) : (
-              <Text style={styles.noMeals}>No techniques logged this day</Text>
+              <Text style={styles.noMeals}>No meals logged this day</Text>
             )}
           </Animated.View>
         )}
@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   dayTileSelected: {
-    borderColor: Colors.jjkPurple,
-    backgroundColor: Colors.jjkPurple + '15',
+    borderColor: Colors.accentPrimary,
+    backgroundColor: Colors.accentPrimary + '15',
   },
   dayNumber: {
     fontSize: FontSizes.md,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.jjkPurple + '20',
+    borderColor: Colors.accentPrimary + '20',
   },
   detailTitle: {
     fontSize: FontSizes.xl,

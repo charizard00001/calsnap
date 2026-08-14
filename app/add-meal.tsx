@@ -79,7 +79,7 @@ export default function AddMealScreen() {
       setResult(nutritionResult);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err: any) {
-      setError(err.message || 'Analysis failed. Cursed energy connection lost.');
+      setError(err.message || 'Analysis failed. Check your connection and try again.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsAnalyzing(false);
@@ -128,14 +128,14 @@ export default function AddMealScreen() {
             <Pressable onPress={() => router.back()} style={styles.backBtn}>
               <Text style={styles.backText}>✕</Text>
             </Pressable>
-            <Text style={styles.title}>Capture Technique</Text>
+            <Text style={styles.title}>Log a Meal</Text>
             <View style={{ width: 40 }} />
           </View>
 
           {/* Image picker buttons or preview */}
           {!imageUri ? (
             <Animated.View entering={FadeIn.duration(400)} style={styles.pickSection}>
-              <Text style={styles.pickLabel}>Lock onto your target...</Text>
+              <Text style={styles.pickLabel}>Snap or upload a photo</Text>
               <View style={styles.pickButtons}>
                 <Pressable onPress={takePhoto} style={styles.pickButton}>
                   <LinearGradient
@@ -175,7 +175,7 @@ export default function AddMealScreen() {
 
               {/* Note input */}
               <View style={styles.noteContainer}>
-                <Text style={styles.noteLabel}>Combat Notes (optional)</Text>
+                <Text style={styles.noteLabel}>Notes (optional)</Text>
                 <TextInput
                   style={styles.noteInput}
                   placeholder="e.g. 2 rotis, large bowl, approx 300g"
@@ -188,7 +188,7 @@ export default function AddMealScreen() {
 
               {/* Meal type selector */}
               <View style={styles.mealTypeContainer}>
-                <Text style={styles.noteLabel}>Technique Type</Text>
+                <Text style={styles.noteLabel}>Meal Type</Text>
                 <View style={styles.mealTypeRow}>
                   {mealTypes.map((type) => {
                     const info = MealTypeLabels[type];
@@ -235,16 +235,16 @@ export default function AddMealScreen() {
                   gradient={Gradients.purpleToRed}
                   style={styles.analyzeBtn}
                 >
-                  Activate Analysis Technique
+                  Analyze Meal
                 </CrazyButton>
               )}
 
               {/* Loading state */}
               {isAnalyzing && (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={Colors.jjkPurple} />
-                  <Text style={styles.loadingText}>食物解析中...</Text>
-                  <Text style={styles.loadingSubtext}>Analyzing food...</Text>
+                  <ActivityIndicator size="large" color={Colors.accentPrimary} />
+                  <Text style={styles.loadingText}>Analyzing...</Text>
+                  <Text style={styles.loadingSubtext}>Figuring out what's on your plate</Text>
                 </View>
               )}
 
@@ -273,7 +273,7 @@ export default function AddMealScreen() {
                     textColor={Colors.primaryBg}
                     style={styles.saveBtn}
                   >
-                    Add to Today's Battle Log
+                    Add to Today's Log
                   </CrazyButton>
                 </Animated.View>
               )}
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   },
   galleryButton: {
     borderWidth: 1,
-    borderColor: Colors.jjkPurple + '40',
+    borderColor: Colors.accentPrimary + '40',
   },
   pickEmoji: {
     fontSize: 32,
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: Colors.jjkPurple + '40',
+    borderColor: Colors.accentPrimary + '40',
     marginBottom: Spacing.md,
   },
   photoImage: {
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontSize: FontSizes.md,
     borderWidth: 1,
-    borderColor: Colors.jjkPurple + '20',
+    borderColor: Colors.accentPrimary + '20',
     minHeight: 60,
   },
   mealTypeContainer: {
@@ -414,8 +414,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   mealTypeCardSelected: {
-    borderColor: Colors.jjkPurple,
-    backgroundColor: Colors.jjkPurple + '15',
+    borderColor: Colors.accentPrimary,
+    backgroundColor: Colors.accentPrimary + '15',
   },
   mealTypeEmoji: {
     fontSize: 20,
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   mealTypeNameSelected: {
-    color: Colors.jjkPurple,
+    color: Colors.accentPrimary,
   },
   analyzeBtn: {
     marginBottom: Spacing.md,
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: FontSizes.xxl,
-    color: Colors.jjkPurple,
+    color: Colors.accentPrimary,
     fontWeight: '700',
     marginTop: Spacing.md,
   },
@@ -448,17 +448,17 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   errorContainer: {
-    backgroundColor: Colors.demonRed + '15',
+    backgroundColor: Colors.accentHot + '15',
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.demonRed + '30',
+    borderColor: Colors.accentHot + '30',
     marginBottom: Spacing.md,
   },
   errorText: {
     fontSize: FontSizes.md,
-    color: Colors.demonRed,
+    color: Colors.accentHot,
     textAlign: 'center',
     marginBottom: Spacing.sm,
   },

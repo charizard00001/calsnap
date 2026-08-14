@@ -93,7 +93,7 @@ export default function AuthScreen() {
         <Animated.View entering={FadeIn.duration(800)} style={styles.content}>
           <Text style={styles.title}>CalSnap</Text>
           <Text style={styles.subtitle}>
-            {mode === 'signIn' ? 'Welcome back, Sorcerer' : 'Begin your training'}
+            {mode === 'signIn' ? 'Welcome back' : "Let's get started"}
           </Text>
 
           <TextInput
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.lg,
     color: Colors.textPrimary,
     borderBottomWidth: 2,
-    borderBottomColor: Colors.jjkPurple,
+    borderBottomColor: Colors.accentPrimary,
     paddingVertical: Spacing.sm,
     marginBottom: Spacing.md,
   },
@@ -211,6 +211,6 @@ const styles = StyleSheet.create({
   switchModeText: {
     marginTop: Spacing.xl,
     fontSize: FontSizes.sm,
-    color: Colors.jjkBlue,
+    color: Colors.accentSecondary,
   },
 });

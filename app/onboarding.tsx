@@ -71,7 +71,7 @@ export default function OnboardingScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
     const goals: UserGoals = {
-      name: name.trim() || 'Sorcerer',
+      name: name.trim() || 'Friend',
       calorieGoal: parseInt(calorieGoal, 10) || 2000,
       proteinGoal: parseInt(proteinGoal, 10) || 150,
       installDate: new Date().toISOString(),
@@ -89,7 +89,7 @@ export default function OnboardingScreen() {
   const steps = [
     // Step 0: Welcome
     <Animated.View key="welcome" entering={FadeIn.duration(1000)} style={styles.stepContainer}>
-      <Text style={styles.welcomeText}>A new Sorcerer{'\n'}awakens...</Text>
+      <Text style={styles.welcomeText}>Let's get{'\n'}you set up</Text>
       <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
         Begin
       </CrazyButton>
@@ -97,8 +97,8 @@ export default function OnboardingScreen() {
 
     // Step 1: Name
     <Animated.View key="name" entering={FadeInUp.duration(600)} style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Enter your Sorcerer name</Text>
-      <Text style={styles.stepSubtitle}>What shall we call you?</Text>
+      <Text style={styles.stepTitle}>What's your name?</Text>
+      <Text style={styles.stepSubtitle}>So we know what to call you</Text>
       <TextInput
         style={styles.stepInput}
         value={name}
@@ -114,8 +114,8 @@ export default function OnboardingScreen() {
 
     // Step 2: Calorie Goal
     <Animated.View key="calories" entering={FadeInUp.duration(600)} style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Daily Cursed Energy Limit</Text>
-      <Text style={styles.stepSubtitle}>Set your daily calorie target</Text>
+      <Text style={styles.stepTitle}>Daily calorie goal</Text>
+      <Text style={styles.stepSubtitle}>How many calories per day?</Text>
       <View style={styles.inputRow}>
         <TextInput
           style={styles.stepInputNumber}
@@ -133,8 +133,8 @@ export default function OnboardingScreen() {
 
     // Step 3: Protein Goal
     <Animated.View key="protein" entering={FadeInUp.duration(600)} style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Strength Absorption Target</Text>
-      <Text style={styles.stepSubtitle}>Set your daily protein target</Text>
+      <Text style={styles.stepTitle}>Daily protein goal</Text>
+      <Text style={styles.stepSubtitle}>How much protein per day?</Text>
       <View style={styles.inputRow}>
         <TextInput
           style={styles.stepInputNumber}
@@ -154,13 +154,13 @@ export default function OnboardingScreen() {
     <Animated.View key="ready" entering={FadeIn.duration(1000)} style={styles.stepContainer}>
       <Animated.View style={[styles.readyGlow, glowStyle]}>
         <LinearGradient
-          colors={[Colors.jjkPurple + '40', Colors.jjkBlue + '20', 'transparent']}
+          colors={[Colors.accentPrimary + '40', Colors.accentSecondary + '20', 'transparent']}
           style={styles.readyGlowGradient}
         />
       </Animated.View>
-      <Text style={styles.readyText}>Your training{'\n'}begins today</Text>
+      <Text style={styles.readyText}>You're all{'\n'}set!</Text>
       <CrazyButton onPress={handleComplete} gradient={Gradients.purpleToRed} style={styles.nextBtn}>
-        Activate ⚡
+        Let's go ⚡
       </CrazyButton>
     </Animated.View>,
   ];
@@ -210,11 +210,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.textMuted + '40',
   },
   dotActive: {
-    backgroundColor: Colors.jjkPurple,
+    backgroundColor: Colors.accentPrimary,
     width: 24,
   },
   dotDone: {
-    backgroundColor: Colors.jjkPurple + '60',
+    backgroundColor: Colors.accentPrimary + '60',
   },
   stepContainer: {
     flex: 1,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     borderBottomWidth: 2,
-    borderBottomColor: Colors.jjkPurple,
+    borderBottomColor: Colors.accentPrimary,
     paddingVertical: Spacing.sm,
     width: width * 0.6,
     marginBottom: Spacing.xxl,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
     borderBottomWidth: 2,
-    borderBottomColor: Colors.jjkPurple,
+    borderBottomColor: Colors.accentPrimary,
     paddingVertical: Spacing.sm,
     minWidth: 120,
   },

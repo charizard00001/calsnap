@@ -90,8 +90,8 @@ export default function DashboardScreen() {
       {/* Header */}
       <Animated.View entering={FadeInUp.duration(600)} style={styles.header}>
         <View>
-          <Text style={styles.sorcererName}>Sorcerer: {goals.name}</Text>
-          <Text style={styles.dayCounter}>Day {dayNumber} of Training</Text>
+          <Text style={styles.sorcererName}>Hey, {goals.name}</Text>
+          <Text style={styles.dayCounter}>🔥 Day {dayNumber} streak</Text>
           <Text style={styles.dateText}>{todayFormatted}</Text>
         </View>
         <Pressable
@@ -128,7 +128,7 @@ export default function DashboardScreen() {
 
       {/* Section title */}
       <Animated.View entering={FadeInUp.delay(600).duration(600)} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Today's Consumed Techniques</Text>
+        <Text style={styles.sectionTitle}>Today's Meals</Text>
         <Text style={styles.mealCount}>{todayLog.meals.length} logged</Text>
       </Animated.View>
     </>
@@ -154,8 +154,8 @@ export default function DashboardScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyEmoji}>🍽️</Text>
-            <Text style={styles.emptyText}>No techniques consumed yet</Text>
-            <Text style={styles.emptySubtext}>Tap + to capture your first meal</Text>
+            <Text style={styles.emptyText}>Nothing logged yet</Text>
+            <Text style={styles.emptySubtext}>Tap + to snap your first meal</Text>
           </View>
         }
       />
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   dayCounter: {
     fontSize: FontSizes.md,
-    color: Colors.jjkPurple,
+    color: Colors.accentPrimary,
     fontWeight: '600',
     marginTop: 4,
   },
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   overLimitOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.demonRed + '10',
+    backgroundColor: Colors.accentHot + '10',
     pointerEvents: 'none',
     zIndex: 1,
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.jjkPurple,
+    shadowColor: Colors.accentPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 12,

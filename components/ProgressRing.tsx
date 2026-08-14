@@ -34,13 +34,13 @@ export default function ProgressRing({
   const percentage = consumed / Math.max(goal, 1);
 
   // Determine color based on percentage
-  let ringColor = Colors.tanjiroBlue; // Under 75%
+  let ringColor = Colors.accentCool; // Under 75%
   let gradientId = 'blue';
   if (percentage >= 1) {
-    ringColor = Colors.demonRed;
+    ringColor = Colors.accentHot;
     gradientId = 'red';
   } else if (percentage >= 0.75) {
-    ringColor = Colors.demonOrange;
+    ringColor = Colors.accentWarm;
     gradientId = 'orange';
   }
 
@@ -74,16 +74,16 @@ export default function ProgressRing({
       <Svg width={size} height={size}>
         <Defs>
           <LinearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={Colors.tanjiroBlue} />
-            <Stop offset="1" stopColor={Colors.jjkBlue} />
+            <Stop offset="0" stopColor={Colors.accentCool} />
+            <Stop offset="1" stopColor={Colors.accentSecondary} />
           </LinearGradient>
           <LinearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={Colors.demonOrange} />
-            <Stop offset="1" stopColor={Colors.zenitsuYellow} />
+            <Stop offset="0" stopColor={Colors.accentWarm} />
+            <Stop offset="1" stopColor={Colors.accentGold} />
           </LinearGradient>
           <LinearGradient id="red" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={Colors.demonRed} />
-            <Stop offset="1" stopColor={Colors.demonOrange} />
+            <Stop offset="0" stopColor={Colors.accentHot} />
+            <Stop offset="1" stopColor={Colors.accentWarm} />
           </LinearGradient>
         </Defs>
 
@@ -118,8 +118,8 @@ export default function ProgressRing({
         <Text style={[styles.calorieNumber, { color: ringColor }]}>
           {consumed}
         </Text>
-        <Text style={styles.label}>Cursed Energy</Text>
-        <Text style={styles.remaining}>{remaining} Reserve</Text>
+        <Text style={styles.label}>Calories</Text>
+        <Text style={styles.remaining}>{remaining} left</Text>
       </View>
     </Animated.View>
   );
