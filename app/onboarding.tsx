@@ -6,7 +6,6 @@ import {
     Dimensions,
     KeyboardAvoidingView,
     Platform,
-    Pressable,
     StyleSheet,
     Text,
     TextInput,
@@ -23,6 +22,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 
+import CrazyButton from '@/components/CrazyButton';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
 import { syncProfileGoals } from '@/lib/profile';
@@ -90,11 +90,9 @@ export default function OnboardingScreen() {
     // Step 0: Welcome
     <Animated.View key="welcome" entering={FadeIn.duration(1000)} style={styles.stepContainer}>
       <Text style={styles.welcomeText}>A new Sorcerer{'\n'}awakens...</Text>
-      <Pressable onPress={handleNext} style={styles.nextBtn}>
-        <LinearGradient colors={Gradients.purpleToBlue} style={styles.nextBtnGradient}>
-          <Text style={styles.nextBtnText}>Begin</Text>
-        </LinearGradient>
-      </Pressable>
+      <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
+        Begin
+      </CrazyButton>
     </Animated.View>,
 
     // Step 1: Name
@@ -109,11 +107,9 @@ export default function OnboardingScreen() {
         placeholderTextColor={Colors.textMuted}
         autoFocus
       />
-      <Pressable onPress={handleNext} style={styles.nextBtn}>
-        <LinearGradient colors={Gradients.purpleToBlue} style={styles.nextBtnGradient}>
-          <Text style={styles.nextBtnText}>Continue</Text>
-        </LinearGradient>
-      </Pressable>
+      <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
+        Continue
+      </CrazyButton>
     </Animated.View>,
 
     // Step 2: Calorie Goal
@@ -130,11 +126,9 @@ export default function OnboardingScreen() {
         />
         <Text style={styles.inputUnit}>kcal</Text>
       </View>
-      <Pressable onPress={handleNext} style={styles.nextBtn}>
-        <LinearGradient colors={Gradients.purpleToBlue} style={styles.nextBtnGradient}>
-          <Text style={styles.nextBtnText}>Continue</Text>
-        </LinearGradient>
-      </Pressable>
+      <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
+        Continue
+      </CrazyButton>
     </Animated.View>,
 
     // Step 3: Protein Goal
@@ -151,11 +145,9 @@ export default function OnboardingScreen() {
         />
         <Text style={styles.inputUnit}>g</Text>
       </View>
-      <Pressable onPress={handleNext} style={styles.nextBtn}>
-        <LinearGradient colors={Gradients.purpleToBlue} style={styles.nextBtnGradient}>
-          <Text style={styles.nextBtnText}>Continue</Text>
-        </LinearGradient>
-      </Pressable>
+      <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
+        Continue
+      </CrazyButton>
     </Animated.View>,
 
     // Step 4: Ready
@@ -167,11 +159,9 @@ export default function OnboardingScreen() {
         />
       </Animated.View>
       <Text style={styles.readyText}>Your training{'\n'}begins today</Text>
-      <Pressable onPress={handleComplete} style={styles.nextBtn}>
-        <LinearGradient colors={Gradients.purpleToRed} style={styles.nextBtnGradient}>
-          <Text style={styles.nextBtnText}>Activate ⚡</Text>
-        </LinearGradient>
-      </Pressable>
+      <CrazyButton onPress={handleComplete} gradient={Gradients.purpleToRed} style={styles.nextBtn}>
+        Activate ⚡
+      </CrazyButton>
     </Animated.View>,
   ];
 
@@ -288,16 +278,6 @@ const styles = StyleSheet.create({
   },
   nextBtn: {
     width: width * 0.7,
-  },
-  nextBtnGradient: {
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  nextBtnText: {
-    fontSize: FontSizes.lg,
-    fontWeight: '800',
-    color: Colors.textPrimary,
   },
   readyGlow: {
     width: 200,

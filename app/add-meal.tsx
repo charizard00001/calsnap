@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
+import CrazyButton from '@/components/CrazyButton';
 import NutritionResultCard from '@/components/NutritionResultCard';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Gradients, MealTypeLabels, Spacing } from '@/constants/theme';
@@ -229,18 +230,13 @@ export default function AddMealScreen() {
 
               {/* Analyze button */}
               {!result && !isAnalyzing && (
-                <Pressable onPress={analyzeFood} style={styles.analyzeBtn}>
-                  <LinearGradient
-                    colors={Gradients.purpleToRed}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.analyzeBtnGradient}
-                  >
-                    <Text style={styles.analyzeBtnText}>
-                      Activate Analysis Technique
-                    </Text>
-                  </LinearGradient>
-                </Pressable>
+                <CrazyButton
+                  onPress={analyzeFood}
+                  gradient={Gradients.purpleToRed}
+                  style={styles.analyzeBtn}
+                >
+                  Activate Analysis Technique
+                </CrazyButton>
               )}
 
               {/* Loading state */}
@@ -271,16 +267,14 @@ export default function AddMealScreen() {
                   />
 
                   {/* Save button */}
-                  <Pressable onPress={saveMeal} style={styles.saveBtn}>
-                    <LinearGradient
-                      colors={[Colors.success, Colors.success + 'AA']}
-                      style={styles.saveBtnGradient}
-                    >
-                      <Text style={styles.saveBtnText}>
-                        Add to Today's Battle Log
-                      </Text>
-                    </LinearGradient>
-                  </Pressable>
+                  <CrazyButton
+                    onPress={saveMeal}
+                    gradient={[Colors.success, Colors.success + 'AA']}
+                    textColor={Colors.primaryBg}
+                    style={styles.saveBtn}
+                  >
+                    Add to Today's Battle Log
+                  </CrazyButton>
                 </Animated.View>
               )}
             </Animated.View>
@@ -438,16 +432,6 @@ const styles = StyleSheet.create({
   analyzeBtn: {
     marginBottom: Spacing.md,
   },
-  analyzeBtnGradient: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  analyzeBtnText: {
-    fontSize: FontSizes.lg,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
   loadingContainer: {
     alignItems: 'center',
     paddingVertical: Spacing.xxl,
@@ -491,15 +475,5 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     marginTop: Spacing.md,
-  },
-  saveBtnGradient: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  saveBtnText: {
-    fontSize: FontSizes.lg,
-    fontWeight: '800',
-    color: Colors.primaryBg,
   },
 });

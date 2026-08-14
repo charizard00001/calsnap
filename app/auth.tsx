@@ -1,8 +1,6 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
     Pressable,
@@ -13,8 +11,9 @@ import {
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
+import CrazyButton from '@/components/CrazyButton';
 import ParticleBackground from '@/components/ParticleBackground';
-import { BorderRadius, Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
+import { Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 type Mode = 'signIn' | 'signUp';
@@ -121,22 +120,24 @@ export default function AuthScreen() {
           {error && <Text style={styles.errorText}>{error}</Text>}
           {info && <Text style={styles.infoText}>{info}</Text>}
 
-          <Pressable onPress={handleEmailAuth} style={styles.primaryBtn} disabled={loading}>
-            <LinearGradient colors={Gradients.purpleToBlue} style={styles.primaryBtnGradient}>
-              {loading ? (
-                <ActivityIndicator color={Colors.textPrimary} />
-              ) : (
-                <Text style={styles.primaryBtnText}>
-                  {mode === 'signIn' ? 'Sign In' : 'Sign Up'}
-                </Text>
-              )}
-            </LinearGradient>
-          </Pressable>
+          <CrazyButton
+            onPress={handleEmailAuth}
+            gradient={Gradients.purpleToBlue}
+            loading={loading}
+            style={styles.primaryBtn}
+          >
+            {mode === 'signIn' ? 'Sign In' : 'Sign Up'}
+          </CrazyButton>
 
           {Platform.OS === 'web' && (
-            <Pressable onPress={handleGoogleAuth} style={styles.googleBtn} disabled={loading}>
-              <Text style={styles.googleBtnText}>Continue with Google</Text>
-            </Pressable>
+            <CrazyButton
+              onPress={handleGoogleAuth}
+              variant="outline"
+              disabled={loading}
+              style={styles.primaryBtn}
+            >
+              Continue with Google
+            </CrazyButton>
           )}
 
           <Pressable
@@ -206,31 +207,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 320,
     marginTop: Spacing.sm,
-  },
-  primaryBtnGradient: {
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  primaryBtnText: {
-    fontSize: FontSizes.lg,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  googleBtn: {
-    width: '100%',
-    maxWidth: 320,
-    marginTop: Spacing.md,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.textMuted + '60',
-    alignItems: 'center',
-  },
-  googleBtnText: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    color: Colors.textPrimary,
   },
   switchModeText: {
     marginTop: Spacing.xl,

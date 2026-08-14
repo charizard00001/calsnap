@@ -6,6 +6,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import { Colors } from '@/constants/theme';
@@ -62,6 +63,17 @@ export default function RootLayout() {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
+      // The OAuth callback lands with the access/refresh token in the URL
+      // fragment (#access_token=...). Supabase reads it on load but doesn't
+      // clear it — strip it so a live session token never sits in the
+      // address bar, browser history, or a shared link.
+      if (
+        Platform.OS === 'web' &&
+        typeof window !== 'undefined' &&
+        window.location.hash.includes('access_token')
+      ) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
       if (event === 'SIGNED_IN') {
         migrateLocalMealsToSupabase().finally(() => queryClient.invalidateQueries());
       } else if (event === 'SIGNED_OUT') {
