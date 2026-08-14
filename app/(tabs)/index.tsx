@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
     Pressable,
     StatusBar,
@@ -25,16 +25,27 @@ import MealCard from '@/components/MealCard';
 import ParticleBackground from '@/components/ParticleBackground';
 import ProgressRing from '@/components/ProgressRing';
 import { Colors, FontSizes, Gradients, MacroThemes, Spacing } from '@/constants/theme';
-import { useMealStore } from '@/store/useMealStore';
-import { formatDisplayDate, getDayOfTraining } from '@/utils/dateHelpers';
+import { useDailyLog, useRemoveMeal } from '@/hooks/useDailyLog';
+import { useGoals } from '@/hooks/useGoals';
+import { DEFAULT_GOALS } from '@/lib/profile';
+import type { DailyLog } from '@/types';
+import { formatDisplayDate, getDayOfTraining, getTodayKey } from '@/utils/dateHelpers';
+
+const emptyLog: DailyLog = {
+  date: '',
+  meals: [],
+  totalCalories: 0,
+  totalProtein: 0,
+  totalCarbs: 0,
+  totalFat: 0,
+};
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { todayLog, goals, loadToday, removeMeal } = useMealStore();
-
-  useEffect(() => {
-    loadToday();
-  }, []);
+  const today = getTodayKey();
+  const { data: todayLog = emptyLog } = useDailyLog(today);
+  const { data: goals = DEFAULT_GOALS } = useGoals();
+  const removeMealMutation = useRemoveMeal();
 
   const dayNumber = getDayOfTraining(goals.installDate);
   const todayFormatted = formatDisplayDate(new Date());
@@ -64,9 +75,9 @@ export default function DashboardScreen() {
 
   const handleDeleteMeal = useCallback(
     (id: string) => {
-      removeMeal(id);
+      removeMealMutation.mutate({ date: today, mealId: id });
     },
-    [removeMeal]
+    [removeMealMutation, today]
   );
 
   const proteinGoal = goals.proteinGoal;
@@ -74,7 +85,7 @@ export default function DashboardScreen() {
   const carbsGoal = Math.round((goals.calorieGoal * 0.45) / 4);
   const fatGoal = Math.round((goals.calorieGoal * 0.25) / 9);
 
-  const headerComponent = (
+  const headerComponent = useMemo(() => (
     <>
       {/* Header */}
       <Animated.View entering={FadeInUp.duration(600)} style={styles.header}>
@@ -121,7 +132,7 @@ export default function DashboardScreen() {
         <Text style={styles.mealCount}>{todayLog.meals.length} logged</Text>
       </Animated.View>
     </>
-  );
+  ), [goals.name, dayNumber, todayFormatted, todayLog, proteinGoal, carbsGoal, fatGoal, router]);
 
   return (
     <View style={styles.container}>

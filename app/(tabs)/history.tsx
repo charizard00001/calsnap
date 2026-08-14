@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Pressable,
     ScrollView,
@@ -11,36 +11,19 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import MealCard from '@/components/MealCard';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
-import { useMealStore } from '@/store/useMealStore';
+import { useDailyLogsRange } from '@/hooks/useDailyLog';
+import { useGoals } from '@/hooks/useGoals';
+import { DEFAULT_GOALS } from '@/lib/profile';
 import type { DailyLog } from '@/types';
 import { formatDisplayDate, getLastNDays, parseDateKey } from '@/utils/dateHelpers';
-import { getDailyLog, getMultipleDailyLogs } from '@/utils/storage';
 
 export default function HistoryScreen() {
-  const [logs, setLogs] = useState<DailyLog[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
-  const goals = useMealStore((s) => s.goals);
+  const { data: goals = DEFAULT_GOALS } = useGoals();
 
-  const dates = React.useMemo(() => getLastNDays(30), []);
-
-  useEffect(() => {
-    (async () => {
-      const allLogs = await getMultipleDailyLogs(dates);
-      setLogs(allLogs);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (selectedDate) {
-      (async () => {
-        const log = await getDailyLog(selectedDate);
-        setSelectedLog(log);
-      })();
-    } else {
-      setSelectedLog(null);
-    }
-  }, [selectedDate]);
+  const dates = useMemo(() => getLastNDays(30), []);
+  const { data: logs = [] } = useDailyLogsRange(dates);
+  const selectedLog = selectedDate ? logs.find((l) => l.date === selectedDate) ?? null : null;
 
   const getColorForDay = (log: DailyLog): string => {
     if (log.totalCalories === 0) return Colors.textMuted;

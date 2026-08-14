@@ -34,6 +34,10 @@ function logKey(date: string): string {
   return `${LOG_PREFIX}${date}`;
 }
 
+export async function setDailyLog(date: string, log: DailyLog): Promise<void> {
+  await AsyncStorage.setItem(logKey(date), JSON.stringify(log));
+}
+
 export async function getDailyLog(date: string): Promise<DailyLog> {
   const data = await AsyncStorage.getItem(logKey(date));
   if (data) {

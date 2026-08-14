@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -9,8 +10,8 @@ import 'react-native-reanimated';
 
 import { Colors } from '@/constants/theme';
 import { migrateLocalMealsToSupabase } from '@/lib/mealsRepository';
+import { queryClient } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
-import { useMealStore } from '@/store/useMealStore';
 import { isOnboardingComplete } from '@/utils/storage';
 
 export { ErrorBoundary } from 'expo-router';
@@ -47,8 +48,6 @@ export default function RootLayout() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const router = useRouter();
   const segments = useSegments();
-  const loadToday = useMealStore((s) => s.loadToday);
-  const loadGoals = useMealStore((s) => s.loadGoals);
 
   const markOnboarded = useCallback(() => {
     setOnboarded(true);
@@ -64,20 +63,19 @@ export default function RootLayout() {
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       if (event === 'SIGNED_IN') {
-        migrateLocalMealsToSupabase().catch(() => {});
+        migrateLocalMealsToSupabase().finally(() => queryClient.invalidateQueries());
+      } else if (event === 'SIGNED_OUT') {
+        queryClient.clear();
       }
     });
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Check onboarding status and load data
+  // Check onboarding status
   useEffect(() => {
     (async () => {
       const done = await isOnboardingComplete();
       setOnboarded(done);
-      if (done) {
-        await Promise.all([loadToday(), loadGoals()]);
-      }
     })();
   }, []);
 
@@ -110,26 +108,28 @@ export default function RootLayout() {
   }
 
   return (
-    <OnboardingContext.Provider value={{ markOnboarded }}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider value={CalSnapDarkTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="add-meal"
-              options={{ presentation: 'fullScreenModal', animation: 'fade' }}
-            />
-            <Stack.Screen
-              name="onboarding"
-              options={{ animation: 'fade' }}
-            />
-            <Stack.Screen
-              name="auth"
-              options={{ animation: 'fade' }}
-            />
-          </Stack>
-        </ThemeProvider>
-      </GestureHandlerRootView>
-    </OnboardingContext.Provider>
+    <QueryClientProvider client={queryClient}>
+      <OnboardingContext.Provider value={{ markOnboarded }}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <ThemeProvider value={CalSnapDarkTheme}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen
+                name="add-meal"
+                options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+              />
+              <Stack.Screen
+                name="onboarding"
+                options={{ animation: 'fade' }}
+              />
+              <Stack.Screen
+                name="auth"
+                options={{ animation: 'fade' }}
+              />
+            </Stack>
+          </ThemeProvider>
+        </GestureHandlerRootView>
+      </OnboardingContext.Provider>
+    </QueryClientProvider>
   );
 }

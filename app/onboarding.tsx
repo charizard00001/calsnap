@@ -26,16 +26,16 @@ import Animated, {
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
 import { syncProfileGoals } from '@/lib/profile';
-import { useMealStore } from '@/store/useMealStore';
 import type { UserGoals } from '@/types';
 import { saveUserGoals, setOnboardingComplete } from '@/utils/storage';
+import { useQueryClient } from '@tanstack/react-query';
 import { useOnboardingContext } from './_layout';
 
 const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { loadGoals, loadToday } = useMealStore();
+  const queryClient = useQueryClient();
   const { markOnboarded } = useOnboardingContext();
 
   const [step, setStep] = useState(0);
@@ -79,8 +79,7 @@ export default function OnboardingScreen() {
 
     await saveUserGoals(goals);
     await setOnboardingComplete();
-    await loadGoals();
-    await loadToday();
+    queryClient.setQueryData(['goals'], goals);
     syncProfileGoals(goals).catch(() => {});
 
     // Signal to root layout that onboarding is done — it will handle navigation

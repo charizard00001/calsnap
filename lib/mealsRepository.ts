@@ -1,14 +1,82 @@
-import type { MealEntry } from '@/types';
-import { getAllLocalMeals } from '@/utils/storage';
+import type { DailyLog, MealEntry } from '@/types';
+import { formatDateKey, parseDateKey } from '@/utils/dateHelpers';
+import { getAllLocalMeals, getDailyLog, setDailyLog } from '@/utils/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 
-// Best-effort sync of meals to Supabase. AsyncStorage (via store/useMealStore)
-// stays the source of truth the UI reads from — these calls run in the
-// background and never block or fail the local-first save/delete.
+// Mutations write through to AsyncStorage first (instant, offline-safe),
+// then push to Supabase in the background. Reads prefer Supabase when
+// reachable — the source of truth for a second device — falling back to
+// the AsyncStorage cache when offline or signed out.
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MIGRATION_FLAG_KEY = 'supabase_meals_migrated';
+const PHOTO_URL_TTL_SECONDS = 60 * 60;
+
+interface MealRow {
+  id: string;
+  meal_type: MealEntry['mealType'];
+  photo_path: string | null;
+  user_note: string | null;
+  food_name: string;
+  description: string | null;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  confidence: MealEntry['confidence'];
+  logged_at: string;
+}
+
+async function signedPhotoUrls(paths: string[]): Promise<Record<string, string>> {
+  if (paths.length === 0) return {};
+  const { data, error } = await supabase.storage
+    .from('meal-photos')
+    .createSignedUrls(paths, PHOTO_URL_TTL_SECONDS);
+  if (error || !data) return {};
+
+  const map: Record<string, string> = {};
+  for (const entry of data) {
+    if (entry.signedUrl && !entry.error) map[entry.path ?? ''] = entry.signedUrl;
+  }
+  return map;
+}
+
+function rowsToDailyLogs(rows: MealRow[], dates: string[], photoUrls: Record<string, string>): Map<string, DailyLog> {
+  const byDate = new Map<string, DailyLog>(
+    dates.map((date) => [
+      date,
+      { date, meals: [], totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0 },
+    ])
+  );
+
+  for (const row of rows) {
+    const date = formatDateKey(new Date(row.logged_at));
+    const log = byDate.get(date);
+    if (!log) continue; // outside the requested range
+
+    log.meals.push({
+      id: row.id,
+      timestamp: row.logged_at,
+      mealType: row.meal_type,
+      photoUri: row.photo_path ? photoUrls[row.photo_path] ?? '' : '',
+      userNote: row.user_note ?? '',
+      foodName: row.food_name,
+      description: row.description ?? '',
+      calories: row.calories,
+      protein: row.protein,
+      carbs: row.carbs,
+      fat: row.fat,
+      confidence: row.confidence,
+    });
+    log.totalCalories += row.calories;
+    log.totalProtein += row.protein;
+    log.totalCarbs += row.carbs;
+    log.totalFat += row.fat;
+  }
+
+  return byDate;
+}
 
 async function uploadMealPhoto(userId: string, meal: MealEntry): Promise<string | null> {
   try {
@@ -86,4 +154,42 @@ export async function migrateLocalMealsToSupabase(): Promise<void> {
   }
 
   await AsyncStorage.setItem(MIGRATION_FLAG_KEY, 'true');
+}
+
+// Fetches meals for `dates` from Supabase in a single query, buckets them
+// by local day, and refreshes the AsyncStorage cache for each day. Falls
+// back to whatever's cached locally when signed out or offline.
+export async function fetchDailyLogsRange(dates: string[]): Promise<DailyLog[]> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId || dates.length === 0) {
+    return Promise.all(dates.map(getDailyLog));
+  }
+
+  const sorted = [...dates].sort();
+  const rangeStart = parseDateKey(sorted[0]).toISOString();
+  const rangeEnd = new Date(parseDateKey(sorted[sorted.length - 1]).getTime() + 86_400_000).toISOString();
+
+  const { data: rows, error } = await supabase
+    .from('meals')
+    .select('id, meal_type, photo_path, user_note, food_name, description, calories, protein, carbs, fat, confidence, logged_at')
+    .eq('user_id', userId)
+    .gte('logged_at', rangeStart)
+    .lt('logged_at', rangeEnd);
+
+  if (error || !rows) {
+    return Promise.all(dates.map(getDailyLog));
+  }
+
+  const paths = rows.map((r) => r.photo_path).filter((p): p is string => !!p);
+  const photoUrls = await signedPhotoUrls(paths);
+  const byDate = rowsToDailyLogs(rows as MealRow[], dates, photoUrls);
+
+  await Promise.all(dates.map((date) => setDailyLog(date, byDate.get(date)!)));
+  return dates.map((date) => byDate.get(date)!);
+}
+
+export async function fetchDailyLog(date: string): Promise<DailyLog> {
+  const [log] = await fetchDailyLogsRange([date]);
+  return log;
 }

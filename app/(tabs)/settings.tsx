@@ -13,20 +13,24 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
-import { syncProfileGoals } from '@/lib/profile';
+import { useGoals, useUpdateGoals } from '@/hooks/useGoals';
+import { DEFAULT_GOALS } from '@/lib/profile';
 import { supabase } from '@/lib/supabase';
-import { useMealStore } from '@/store/useMealStore';
+import { getTodayKey } from '@/utils/dateHelpers';
+import { clearAllData, clearDailyLog } from '@/utils/storage';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function SettingsScreen() {
-  const { goals, updateGoals, clearToday, clearAll, loadToday } = useMealStore();
+  const { data: goals = DEFAULT_GOALS } = useGoals();
+  const updateGoalsMutation = useUpdateGoals();
+  const queryClient = useQueryClient();
   const [name, setName] = useState(goals.name);
   const [calGoal, setCalGoal] = useState(String(goals.calorieGoal));
   const [proGoal, setProGoal] = useState(String(goals.proteinGoal));
 
   const saveName = () => {
     if (name.trim()) {
-      updateGoals({ name: name.trim() });
-      syncProfileGoals({ ...goals, name: name.trim() }).catch(() => {});
+      updateGoalsMutation.mutate({ name: name.trim() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
@@ -34,8 +38,7 @@ export default function SettingsScreen() {
   const saveCalGoal = () => {
     const val = parseInt(calGoal, 10);
     if (val > 0) {
-      updateGoals({ calorieGoal: val });
-      syncProfileGoals({ ...goals, calorieGoal: val }).catch(() => {});
+      updateGoalsMutation.mutate({ calorieGoal: val });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
@@ -43,8 +46,7 @@ export default function SettingsScreen() {
   const saveProGoal = () => {
     const val = parseInt(proGoal, 10);
     if (val > 0) {
-      updateGoals({ proteinGoal: val });
-      syncProfileGoals({ ...goals, proteinGoal: val }).catch(() => {});
+      updateGoalsMutation.mutate({ proteinGoal: val });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
@@ -59,7 +61,10 @@ export default function SettingsScreen() {
           text: 'Clear',
           style: 'destructive',
           onPress: async () => {
-            await clearToday();
+            const today = getTodayKey();
+            await clearDailyLog(today);
+            queryClient.invalidateQueries({ queryKey: ['dailyLog', today] });
+            queryClient.invalidateQueries({ queryKey: ['dailyLogs'] });
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           },
         },
@@ -91,7 +96,8 @@ export default function SettingsScreen() {
           text: 'Delete Everything',
           style: 'destructive',
           onPress: async () => {
-            await clearAll();
+            await clearAllData();
+            queryClient.invalidateQueries();
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           },
         },

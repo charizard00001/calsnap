@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
     ScrollView,
     StyleSheet,
@@ -9,22 +9,16 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
-import { useMealStore } from '@/store/useMealStore';
-import type { DailyLog } from '@/types';
+import { useDailyLogsRange } from '@/hooks/useDailyLog';
+import { useGoals } from '@/hooks/useGoals';
+import { DEFAULT_GOALS } from '@/lib/profile';
 import { getLastNDays } from '@/utils/dateHelpers';
-import { getMultipleDailyLogs } from '@/utils/storage';
 
 export default function InsightsScreen() {
-  const [weekLogs, setWeekLogs] = useState<DailyLog[]>([]);
-  const goals = useMealStore((s) => s.goals);
-
-  useEffect(() => {
-    (async () => {
-      const dates = getLastNDays(7);
-      const logs = await getMultipleDailyLogs(dates);
-      setWeekLogs(logs.reverse()); // oldest first for chart
-    })();
-  }, []);
+  const { data: goals = DEFAULT_GOALS } = useGoals();
+  const dates = useMemo(() => getLastNDays(7), []);
+  const { data: logs = [] } = useDailyLogsRange(dates);
+  const weekLogs = useMemo(() => [...logs].reverse(), [logs]); // oldest first for chart
 
   const avgCalories = weekLogs.length
     ? Math.round(weekLogs.reduce((s, l) => s + l.totalCalories, 0) / weekLogs.length)
@@ -34,19 +28,16 @@ export default function InsightsScreen() {
     : 0;
 
   // Streak calculation
-  const streakDates = getLastNDays(30);
-  const [streak, setStreak] = useState(0);
-  useEffect(() => {
-    (async () => {
-      const logs = await getMultipleDailyLogs(streakDates);
-      let count = 0;
-      for (const log of logs) {
-        if (log.meals.length > 0) count++;
-        else break;
-      }
-      setStreak(count);
-    })();
-  }, []);
+  const streakDates = useMemo(() => getLastNDays(30), []);
+  const { data: streakLogs = [] } = useDailyLogsRange(streakDates);
+  const streak = useMemo(() => {
+    let count = 0;
+    for (const log of streakLogs) {
+      if (log.meals.length > 0) count++;
+      else break;
+    }
+    return count;
+  }, [streakLogs]);
 
   // Best / worst day
   const bestDay = weekLogs.length

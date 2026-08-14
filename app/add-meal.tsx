@@ -22,13 +22,14 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import NutritionResultCard from '@/components/NutritionResultCard';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Gradients, MealTypeLabels, Spacing } from '@/constants/theme';
+import { useAddMeal } from '@/hooks/useDailyLog';
 import { analyzeFoodImage } from '@/services/geminiService';
-import { useMealStore } from '@/store/useMealStore';
 import type { MealEntry, MealType, NutritionResult } from '@/types';
+import { getTodayKey } from '@/utils/dateHelpers';
 
 export default function AddMealScreen() {
   const router = useRouter();
-  const addMeal = useMealStore((s) => s.addMeal);
+  const addMealMutation = useAddMeal();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [userNote, setUserNote] = useState('');
@@ -103,7 +104,7 @@ export default function AddMealScreen() {
       confidence: result.confidence,
     };
 
-    await addMeal(meal);
+    await addMealMutation.mutateAsync({ date: getTodayKey(), meal });
     router.back();
   };
 
