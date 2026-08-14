@@ -36,21 +36,21 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔮" focused={focused} />,
+          title: 'Today',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🍽️" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
-          title: 'Records',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📜" focused={focused} />,
+          title: 'History',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="📅" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="insights"
         options={{
-          title: 'Power',
+          title: 'Insights',
           tabBarIcon: ({ focused }) => <TabIcon emoji="📊" focused={focused} />,
         }}
       />

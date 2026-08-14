@@ -1,8 +1,6 @@
-// NOTE: The default React Native styling doesn't support server rendering.
-// Server rendered styles should not change between the first render of the HTML
-// and the first render on the client. Typically, web developers will use CSS media queries
-// to render different styles on the client and server, these aren't directly supported in React Native
-// but can be achieved using a styling library like Nativewind.
-export function useColorScheme() {
-  return 'light';
+// Server-rendered styles must not change between the first HTML render and
+// the first client render, so the web build pins a single scheme rather than
+// reading the OS preference. CalSnap is a fixed dark theme.
+export function useColorScheme(): 'light' | 'dark' {
+  return 'dark';
 }

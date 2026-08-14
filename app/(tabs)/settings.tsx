@@ -1,7 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
 import {
-    Alert,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -14,6 +13,8 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
 import { useGoals, useUpdateGoals } from '@/hooks/useGoals';
+import { confirmAction } from '@/lib/confirm';
+import { deleteAllMealsFromSupabase, deleteMealsForDate } from '@/lib/mealsRepository';
 import { DEFAULT_GOALS } from '@/lib/profile';
 import { supabase } from '@/lib/supabase';
 import { getTodayKey } from '@/utils/dateHelpers';
@@ -51,58 +52,46 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleClearToday = () => {
-    Alert.alert(
-      'Clear Today\'s Log',
+  const handleClearToday = async () => {
+    const ok = await confirmAction(
+      "Clear Today's Log",
       'This will remove all meals logged today. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: async () => {
-            const today = getTodayKey();
-            await clearDailyLog(today);
-            queryClient.invalidateQueries({ queryKey: ['dailyLog', today] });
-            queryClient.invalidateQueries({ queryKey: ['dailyLogs'] });
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          },
-        },
-      ]
+      'Clear'
     );
+    if (!ok) return;
+
+    const today = getTodayKey();
+    await deleteMealsForDate(today);
+    await clearDailyLog(today);
+    queryClient.invalidateQueries({ queryKey: ['dailyLog', today] });
+    queryClient.invalidateQueries({ queryKey: ['dailyLogs'] });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
-  const handleSignOut = () => {
-    Alert.alert('Sign Out', 'You can sign back in any time.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          await supabase.auth.signOut();
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        },
-      },
-    ]);
+  const handleSignOut = async () => {
+    const ok = await confirmAction(
+      'Sign Out',
+      'You can sign back in any time.',
+      'Sign Out'
+    );
+    if (!ok) return;
+
+    await supabase.auth.signOut();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
-  const handleClearAll = () => {
-    Alert.alert(
+  const handleClearAll = async () => {
+    const ok = await confirmAction(
       'Clear All Data',
-      'This will permanently delete ALL meal logs, goals, and history. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete Everything',
-          style: 'destructive',
-          onPress: async () => {
-            await clearAllData();
-            queryClient.invalidateQueries();
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          },
-        },
-      ]
+      'This will permanently delete ALL meal logs and history, on this device and on your account. This cannot be undone.',
+      'Delete Everything'
     );
+    if (!ok) return;
+
+    await deleteAllMealsFromSupabase();
+    await clearAllData();
+    queryClient.invalidateQueries();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
   };
 
   return (

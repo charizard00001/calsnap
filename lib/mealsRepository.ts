@@ -11,7 +11,11 @@ import { supabase } from './supabase';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MIGRATION_FLAG_KEY = 'supabase_meals_migrated';
-const PHOTO_URL_TTL_SECONDS = 60 * 60;
+// Signed URLs get written into the AsyncStorage day-log cache, so the TTL
+// doubles as "how long cached meal photos keep working offline". At one
+// hour, any meal older than that showed a broken image. A week covers
+// realistic offline gaps; online reads re-sign on every refetch anyway.
+const PHOTO_URL_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 interface MealRow {
   id: string;
@@ -124,6 +128,60 @@ export async function deleteMealFromSupabase(mealId: string): Promise<void> {
   if (!data.user) return;
 
   await supabase.from('meals').delete().eq('id', mealId);
+}
+
+// Supabase is the source of truth since the TanStack Query migration, so
+// clearing only the local cache does nothing lasting — the next refetch
+// pulls the rows straight back. These delete remotely first, then locally.
+
+export async function deleteMealsForDate(date: string): Promise<void> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) return;
+
+  const dayStart = parseDateKey(date).toISOString();
+  const dayEnd = new Date(parseDateKey(date).getTime() + 86_400_000).toISOString();
+
+  const { data: rows } = await supabase
+    .from('meals')
+    .select('photo_path')
+    .eq('user_id', userId)
+    .gte('logged_at', dayStart)
+    .lt('logged_at', dayEnd);
+
+  await removeStoredPhotos(rows);
+
+  await supabase
+    .from('meals')
+    .delete()
+    .eq('user_id', userId)
+    .gte('logged_at', dayStart)
+    .lt('logged_at', dayEnd);
+}
+
+export async function deleteAllMealsFromSupabase(): Promise<void> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) return;
+
+  const { data: rows } = await supabase
+    .from('meals')
+    .select('photo_path')
+    .eq('user_id', userId);
+
+  await removeStoredPhotos(rows);
+
+  await supabase.from('meals').delete().eq('user_id', userId);
+
+  // A wiped account shouldn't have the old local log re-uploaded by the
+  // first-sign-in migration, so drop its "already migrated" flag guard.
+  await AsyncStorage.setItem(MIGRATION_FLAG_KEY, 'true');
+}
+
+async function removeStoredPhotos(rows: { photo_path: string | null }[] | null) {
+  const paths = (rows ?? []).map((r) => r.photo_path).filter((p): p is string => !!p);
+  if (paths.length === 0) return;
+  await supabase.storage.from('meal-photos').remove(paths);
 }
 
 // One-time push of pre-existing local meals (from before an account

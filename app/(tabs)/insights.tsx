@@ -65,8 +65,8 @@ export default function InsightsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Power Level Analysis</Text>
-        <Text style={styles.subtitle}>Weekly performance breakdown</Text>
+        <Text style={styles.title}>Insights</Text>
+        <Text style={styles.subtitle}>Your last 7 days</Text>
 
         {/* Stats summary */}
         <Animated.View entering={FadeInUp.duration(600)} style={styles.summaryRow}>
@@ -78,7 +78,7 @@ export default function InsightsScreen() {
             <Text style={styles.summaryUnit}>kcal/day</Text>
           </View>
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Strength Accumulation</Text>
+            <Text style={styles.summaryLabel}>Avg Protein</Text>
             <Text style={[styles.summaryValue, { color: Colors.accentHot }]}>
               {avgProtein}
             </Text>
@@ -96,13 +96,13 @@ export default function InsightsScreen() {
             </Text>
           </View>
           {streak > 7 && (
-            <Text style={styles.streakBonus}>Domain Expansion Active!</Text>
+            <Text style={styles.streakBonus}>You're on a roll!</Text>
           )}
         </Animated.View>
 
         {/* Bar chart */}
         <Animated.View entering={FadeInUp.delay(400).duration(600)} style={styles.chartSection}>
-          <Text style={styles.chartTitle}>7-Day Power Output</Text>
+          <Text style={styles.chartTitle}>Calories · Last 7 Days</Text>
           <View style={styles.chartContainer}>
             {weekLogs.map((log, i) => {
               const dayLabel = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][

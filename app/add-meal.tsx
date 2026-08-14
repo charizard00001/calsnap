@@ -6,7 +6,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
-    Alert,
     Image,
     KeyboardAvoidingView,
     Platform,
@@ -24,6 +23,7 @@ import NutritionResultCard from '@/components/NutritionResultCard';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Gradients, MealTypeLabels, Spacing } from '@/constants/theme';
 import { useAddMeal } from '@/hooks/useDailyLog';
+import { notify } from '@/lib/confirm';
 import { analyzeFoodImage } from '@/services/geminiService';
 import type { MealEntry, MealType, NutritionResult } from '@/types';
 import { getTodayKey } from '@/utils/dateHelpers';
@@ -42,7 +42,7 @@ export default function AddMealScreen() {
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Permission needed', 'Camera access is required to snap your food.');
+      notify('Permission needed', 'Camera access is required to snap your food.');
       return;
     }
     const res = await ImagePicker.launchCameraAsync({

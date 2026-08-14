@@ -90,7 +90,7 @@ export default function DashboardScreen() {
       {/* Header */}
       <Animated.View entering={FadeInUp.duration(600)} style={styles.header}>
         <View>
-          <Text style={styles.sorcererName}>Hey, {goals.name}</Text>
+          <Text style={styles.greetingName}>Hey, {goals.name}</Text>
           <Text style={styles.dayCounter}>🔥 Day {dayNumber} streak</Text>
           <Text style={styles.dateText}>{todayFormatted}</Text>
         </View>
@@ -148,7 +148,6 @@ export default function DashboardScreen() {
           <MealCard meal={item} onDelete={handleDeleteMeal} />
         )}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={80}
         ListHeaderComponent={headerComponent}
         contentContainerStyle={{ paddingHorizontal: Spacing.md, paddingBottom: 100 }}
         ListEmptyComponent={
@@ -187,7 +186,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     marginBottom: Spacing.lg,
   },
-  sorcererName: {
+  greetingName: {
     fontSize: FontSizes.xl,
     fontWeight: '800',
     color: Colors.textPrimary,

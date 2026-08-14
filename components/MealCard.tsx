@@ -58,7 +58,7 @@ export default function MealCard({ meal, onDelete }: MealCardProps) {
     <Animated.View entering={FadeIn.duration(400)} style={styles.wrapper}>
       {/* Delete background */}
       <Animated.View style={[styles.deleteBackground, deleteStyle]}>
-        <Text style={styles.deleteText}>⚔️ Remove</Text>
+        <Text style={styles.deleteText}>🗑 Delete</Text>
       </Animated.View>
 
       <GestureDetector gesture={panGesture}>
