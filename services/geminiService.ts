@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabase';
 import type { NutritionResult } from '@/types';
 import * as ImageManipulator from 'expo-image-manipulator';
 
@@ -33,9 +34,18 @@ async function callAnalyzeEndpoint(
   imageBase64: string,
   userNote: string
 ): Promise<NutritionResult> {
+  const { data } = await supabase.auth.getSession();
+  const accessToken = data.session?.access_token;
+  if (!accessToken) {
+    throw new Error('You must be signed in to analyze a meal.');
+  }
+
   const response = await fetch(`${API_BASE_URL}/api/analyze`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
     body: JSON.stringify({ imageBase64, userNote }),
   });
 

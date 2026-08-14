@@ -1,3 +1,4 @@
+import { deleteMealFromSupabase, syncMealToSupabase } from '@/lib/mealsRepository';
 import type { DailyLog, MealEntry, UserGoals } from '@/types';
 import { getTodayKey } from '@/utils/dateHelpers';
 import {
@@ -64,12 +65,14 @@ export const useMealStore = create<MealStore>((set, get) => ({
     const today = getTodayKey();
     const updated = await addMealToLog(today, meal);
     set({ todayLog: updated });
+    syncMealToSupabase(meal).catch(() => {});
   },
 
   removeMeal: async (mealId: string) => {
     const today = getTodayKey();
     const updated = await removeMealFromLog(today, mealId);
     set({ todayLog: updated });
+    deleteMealFromSupabase(mealId).catch(() => {});
   },
 
   updateGoals: async (partial: Partial<UserGoals>) => {

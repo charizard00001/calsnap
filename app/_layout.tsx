@@ -1,3 +1,4 @@
+import type { Session } from '@supabase/supabase-js';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -7,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
 import { Colors } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 import { useMealStore } from '@/store/useMealStore';
 import { isOnboardingComplete } from '@/utils/storage';
 
@@ -41,6 +43,7 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
   const router = useRouter();
   const segments = useSegments();
   const loadToday = useMealStore((s) => s.loadToday);
@@ -54,6 +57,15 @@ export default function RootLayout() {
     if (error) throw error;
   }, [error]);
 
+  // Track the Supabase auth session
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
   // Check onboarding status and load data
   useEffect(() => {
     (async () => {
@@ -66,25 +78,30 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (loaded && onboarded !== null) {
+    if (loaded && onboarded !== null && session !== undefined) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, onboarded]);
+  }, [loaded, onboarded, session]);
 
-  // Handle routing based on onboarding status
+  // Handle routing based on auth + onboarding status
   useEffect(() => {
-    if (onboarded === null || !loaded) return;
+    if (onboarded === null || !loaded || session === undefined) return;
 
+    const inAuth = segments[0] === 'auth';
     const inOnboarding = segments[0] === 'onboarding';
 
-    if (!onboarded && !inOnboarding) {
+    if (!session && !inAuth) {
+      router.replace('/auth');
+    } else if (session && inAuth) {
+      router.replace(onboarded ? '/(tabs)' : '/onboarding');
+    } else if (session && !onboarded && !inOnboarding) {
       router.replace('/onboarding');
-    } else if (onboarded && inOnboarding) {
+    } else if (session && onboarded && inOnboarding) {
       router.replace('/(tabs)');
     }
-  }, [onboarded, loaded]);
+  }, [session, onboarded, loaded]);
 
-  if (!loaded || onboarded === null) {
+  if (!loaded || onboarded === null || session === undefined) {
     return null;
   }
 
@@ -100,6 +117,10 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="onboarding"
+              options={{ animation: 'fade' }}
+            />
+            <Stack.Screen
+              name="auth"
               options={{ animation: 'fade' }}
             />
           </Stack>

@@ -1,7 +1,7 @@
 import { Colors } from '@/constants/theme';
 import { Canvas, Circle } from '@shopify/react-native-skia';
 import React from 'react';
-import { StyleSheet, useWindowDimensions } from 'react-native';
+import { Platform, StyleSheet, useWindowDimensions } from 'react-native';
 import {
     useFrameCallback,
     useSharedValue
@@ -32,6 +32,16 @@ function generateParticles(width: number, height: number): Particle[] {
 
 export default function ParticleBackground() {
   const { width, height } = useWindowDimensions();
+
+  // react-native-skia's worklet-driven paint (useFrameCallback + shared
+  // values feeding Canvas props) isn't reliable on web yet — the Skia JSI
+  // shim loses its CanvasKit reference inside the worklet context. Native
+  // (iOS/Android) uses synchronous JSI and isn't affected. Revisit when
+  // building out the Phase 4 "crazy design" Skia work.
+  if (Platform.OS === 'web') {
+    return null;
+  }
+
   const particles = React.useMemo(() => generateParticles(width, height), [width, height]);
   const time = useSharedValue(0);
 

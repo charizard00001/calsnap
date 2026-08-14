@@ -1,4 +1,24 @@
+import { createClient } from '@supabase/supabase-js';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+// 20 requests/user/day protects the shared free Gemini/OpenRouter quotas
+// from a single runaway client.
+const ratelimit = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+const limiter = new Ratelimit({
+  redis: ratelimit,
+  limiter: Ratelimit.slidingWindow(20, '1 d'),
+  prefix: 'calsnap:analyze',
+});
+
+const authClient = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 interface NutritionResult {
   foodName: string;
@@ -159,6 +179,28 @@ async function callOpenRouterFallback(
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  const authHeader = req.headers.authorization ?? '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (!token) {
+    res.status(401).json({ error: 'Missing Authorization header' });
+    return;
+  }
+
+  const { data: userData, error: authError } = await authClient.auth.getUser(token);
+  if (authError || !userData.user) {
+    res.status(401).json({ error: 'Invalid or expired session' });
+    return;
+  }
+
+  const { success, limit, remaining, reset } = await limiter.limit(userData.user.id);
+  if (!success) {
+    res.setHeader('X-RateLimit-Limit', limit);
+    res.setHeader('X-RateLimit-Remaining', remaining);
+    res.setHeader('X-RateLimit-Reset', reset);
+    res.status(429).json({ error: 'Daily analysis limit reached. Try again tomorrow.' });
     return;
   }
 

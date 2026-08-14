@@ -13,6 +13,8 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
+import { syncProfileGoals } from '@/lib/profile';
+import { supabase } from '@/lib/supabase';
 import { useMealStore } from '@/store/useMealStore';
 
 export default function SettingsScreen() {
@@ -24,6 +26,7 @@ export default function SettingsScreen() {
   const saveName = () => {
     if (name.trim()) {
       updateGoals({ name: name.trim() });
+      syncProfileGoals({ ...goals, name: name.trim() }).catch(() => {});
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
@@ -32,6 +35,7 @@ export default function SettingsScreen() {
     const val = parseInt(calGoal, 10);
     if (val > 0) {
       updateGoals({ calorieGoal: val });
+      syncProfileGoals({ ...goals, calorieGoal: val }).catch(() => {});
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
@@ -40,6 +44,7 @@ export default function SettingsScreen() {
     const val = parseInt(proGoal, 10);
     if (val > 0) {
       updateGoals({ proteinGoal: val });
+      syncProfileGoals({ ...goals, proteinGoal: val }).catch(() => {});
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   };
@@ -60,6 +65,20 @@ export default function SettingsScreen() {
         },
       ]
     );
+  };
+
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'You can sign back in any time.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await supabase.auth.signOut();
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        },
+      },
+    ]);
   };
 
   const handleClearAll = () => {
@@ -144,6 +163,12 @@ export default function SettingsScreen() {
         {/* Danger Zone */}
         <Animated.View entering={FadeInUp.delay(400).duration(600)} style={styles.dangerZone}>
           <Text style={styles.dangerTitle}>☠️ Danger Zone</Text>
+
+          <Pressable onPress={handleSignOut} style={styles.dangerButton}>
+            <View style={[styles.dangerBorder, { borderColor: Colors.jjkBlue }]} />
+            <Text style={[styles.dangerButtonText, { color: Colors.jjkBlue }]}>Sign Out</Text>
+            <Text style={styles.dangerButtonSub}>Your data stays safe on your account</Text>
+          </Pressable>
 
           <Pressable onPress={handleClearToday} style={styles.dangerButton}>
             <View style={[styles.dangerBorder, { borderColor: Colors.demonOrange }]} />

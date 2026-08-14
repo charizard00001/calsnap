@@ -25,6 +25,7 @@ import Animated, {
 
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
+import { syncProfileGoals } from '@/lib/profile';
 import { useMealStore } from '@/store/useMealStore';
 import type { UserGoals } from '@/types';
 import { saveUserGoals, setOnboardingComplete } from '@/utils/storage';
@@ -80,6 +81,7 @@ export default function OnboardingScreen() {
     await setOnboardingComplete();
     await loadGoals();
     await loadToday();
+    syncProfileGoals(goals).catch(() => {});
 
     // Signal to root layout that onboarding is done — it will handle navigation
     markOnboarded();

@@ -1,3 +1,4 @@
+import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -88,7 +89,7 @@ export default function AddMealScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
     const meal: MealEntry = {
-      id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
+      id: Crypto.randomUUID(),
       timestamp: new Date().toISOString(),
       mealType,
       photoUri: imageUri,
