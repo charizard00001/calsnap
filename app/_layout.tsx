@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
 import { Colors } from '@/constants/theme';
+import { migrateLocalMealsToSupabase } from '@/lib/mealsRepository';
 import { supabase } from '@/lib/supabase';
 import { useMealStore } from '@/store/useMealStore';
 import { isOnboardingComplete } from '@/utils/storage';
@@ -60,8 +61,11 @@ export default function RootLayout() {
   // Track the Supabase auth session
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
+      if (event === 'SIGNED_IN') {
+        migrateLocalMealsToSupabase().catch(() => {});
+      }
     });
     return () => listener.subscription.unsubscribe();
   }, []);

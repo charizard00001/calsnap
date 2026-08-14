@@ -90,6 +90,20 @@ export async function clearAllData(): Promise<void> {
   await AsyncStorage.multiRemove([...logKeys, GOALS_KEY, ONBOARDING_KEY]);
 }
 
+export async function getAllLocalMeals(): Promise<MealEntry[]> {
+  const keys = await AsyncStorage.getAllKeys();
+  const logKeys = keys.filter((k) => k.startsWith(LOG_PREFIX));
+  const pairs = await AsyncStorage.multiGet(logKeys);
+  const meals: MealEntry[] = [];
+  for (const [, value] of pairs) {
+    if (value) {
+      const log: DailyLog = JSON.parse(value);
+      meals.push(...log.meals);
+    }
+  }
+  return meals;
+}
+
 export async function getMultipleDailyLogs(dates: string[]): Promise<DailyLog[]> {
   const keys = dates.map(logKey);
   const pairs = await AsyncStorage.multiGet(keys);
