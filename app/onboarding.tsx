@@ -25,7 +25,8 @@ import Animated, {
 import CrazyButton from '@/components/CrazyButton';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
-import { syncProfileGoals } from '@/lib/profile';
+import { completeOnboarding } from '@/lib/profile';
+import { supabase } from '@/lib/supabase';
 import type { UserGoals } from '@/types';
 import { saveUserGoals, setOnboardingComplete } from '@/utils/storage';
 import { useQueryClient } from '@tanstack/react-query';
@@ -78,9 +79,11 @@ export default function OnboardingScreen() {
     };
 
     await saveUserGoals(goals);
-    await setOnboardingComplete();
     queryClient.setQueryData(['goals'], goals);
-    syncProfileGoals(goals).catch(() => {});
+
+    const { data } = await supabase.auth.getUser();
+    if (data.user) await setOnboardingComplete(data.user.id);
+    await completeOnboarding(goals).catch(() => {});
 
     // Signal to root layout that onboarding is done — it will handle navigation
     markOnboarded();

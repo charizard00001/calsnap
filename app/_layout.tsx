@@ -12,9 +12,10 @@ import 'react-native-reanimated';
 import { Colors } from '@/constants/theme';
 import { installGlobalErrorHandlers } from '@/lib/errorReporter';
 import { migrateLocalMealsToSupabase } from '@/lib/mealsRepository';
+import { fetchOnboarded } from '@/lib/profile';
 import { queryClient } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
-import { isOnboardingComplete } from '@/utils/storage';
+import { clearGoalsCache, isOnboardingComplete } from '@/utils/storage';
 
 export { RootErrorBoundary as ErrorBoundary } from '@/components/RootErrorBoundary';
 
@@ -93,6 +94,7 @@ export default function RootLayout() {
         migrateLocalMealsToSupabase().finally(() => queryClient.invalidateQueries());
       } else if (event === 'SIGNED_OUT') {
         queryClient.clear();
+        clearGoalsCache().catch(() => {});
       } else if (event === 'PASSWORD_RECOVERY') {
         // Supabase establishes a session from the recovery link's token
         // before this fires — without this flag the routing effect below
@@ -104,13 +106,29 @@ export default function RootLayout() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Check onboarding status
+  // Resolve onboarding status for the CURRENT user. Authoritative source is
+  // the profile's `onboarded` column (so it's right after a reinstall, on a
+  // new device, or when a different account signs in on this browser); the
+  // per-user local flag is only a fallback when that fetch fails offline.
+  const userId = session?.user?.id;
   useEffect(() => {
+    if (session === undefined) return; // auth still resolving
+    if (!userId) {
+      setOnboarded(false); // no session — value is unused, routing goes to /auth
+      return;
+    }
+
+    let cancelled = false;
+    setOnboarded(null); // recompute for this user
     (async () => {
-      const done = await isOnboardingComplete();
-      setOnboarded(done);
+      const remote = await fetchOnboarded();
+      const resolved = remote ?? (await isOnboardingComplete(userId));
+      if (!cancelled) setOnboarded(resolved);
     })();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, session === undefined]);
 
   useEffect(() => {
     if (loaded && onboarded !== null && session !== undefined) {

@@ -18,14 +18,28 @@ export async function getUserGoals(): Promise<UserGoals | null> {
 }
 
 // ─── Onboarding ────────────────────────────────────────
+// Keyed per user id: this is only an offline fallback for the authoritative
+// `profiles.onboarded` column. An un-keyed flag was the source of a bug —
+// on a shared browser a brand-new account inherited the previous user's
+// "already onboarded" flag and skipped setup entirely.
 
-export async function setOnboardingComplete(): Promise<void> {
-  await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+function onboardingKey(userId: string): string {
+  return `${ONBOARDING_KEY}_${userId}`;
 }
 
-export async function isOnboardingComplete(): Promise<boolean> {
-  const value = await AsyncStorage.getItem(ONBOARDING_KEY);
+export async function setOnboardingComplete(userId: string): Promise<void> {
+  await AsyncStorage.setItem(onboardingKey(userId), 'true');
+}
+
+export async function isOnboardingComplete(userId: string): Promise<boolean> {
+  const value = await AsyncStorage.getItem(onboardingKey(userId));
   return value === 'true';
+}
+
+// Cleared on sign-out so the next account on this browser doesn't briefly
+// render the previous user's name / goals / streak before the profile loads.
+export async function clearGoalsCache(): Promise<void> {
+  await AsyncStorage.removeItem(GOALS_KEY);
 }
 
 // ─── Daily Logs ────────────────────────────────────────
@@ -103,8 +117,10 @@ export async function clearDailyLog(date: string): Promise<void> {
 
 export async function clearAllData(): Promise<void> {
   const keys = await AsyncStorage.getAllKeys();
-  const logKeys = keys.filter((k) => k.startsWith(LOG_PREFIX));
-  await AsyncStorage.multiRemove([...logKeys, GOALS_KEY, ONBOARDING_KEY]);
+  const toRemove = keys.filter(
+    (k) => k.startsWith(LOG_PREFIX) || k.startsWith(ONBOARDING_KEY) || k === GOALS_KEY
+  );
+  await AsyncStorage.multiRemove(toRemove);
 }
 
 export async function getAllLocalMeals(): Promise<MealEntry[]> {
