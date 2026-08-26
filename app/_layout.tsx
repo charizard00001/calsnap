@@ -10,12 +10,15 @@ import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import { Colors } from '@/constants/theme';
+import { installGlobalErrorHandlers } from '@/lib/errorReporter';
 import { migrateLocalMealsToSupabase } from '@/lib/mealsRepository';
 import { queryClient } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
 import { isOnboardingComplete } from '@/utils/storage';
 
-export { ErrorBoundary } from 'expo-router';
+export { RootErrorBoundary as ErrorBoundary } from '@/components/RootErrorBoundary';
+
+installGlobalErrorHandlers();
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',

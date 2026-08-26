@@ -1,35 +1,29 @@
-import { createClient } from '@supabase/supabase-js';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { buildPrompt, parseNutritionJson, type NutritionResult } from './_lib/nutrition';
+import { requireUser } from './_lib/requireUser';
+import { reportServerError } from './_lib/serverError';
 
 // 20 requests/user/day protects the shared free Gemini/OpenRouter quotas
-// from a single runaway client.
-const ratelimit = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
-const limiter = new Ratelimit({
-  redis: ratelimit,
-  limiter: Ratelimit.slidingWindow(20, '1 d'),
-  prefix: 'calsnap:analyze',
-});
+// from a single runaway client. Built lazily so a missing Upstash env var
+// returns a clean 503 instead of crashing the route at module load.
+let limiter: Ratelimit | null = null;
 
-const authClient = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
-
-interface NutritionResult {
-  foodName: string;
-  description: string;
-  servingSize: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  confidence: 'low' | 'medium' | 'high';
-  provider: 'gemini' | 'openrouter';
+function getLimiter(): Ratelimit {
+  if (!limiter) {
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!url || !token) {
+      throw new Error('Rate limiter not configured (UPSTASH_REDIS_REST_URL / _TOKEN)');
+    }
+    limiter = new Ratelimit({
+      redis: new Redis({ url, token }),
+      limiter: Ratelimit.slidingWindow(20, '1 d'),
+      prefix: 'calsnap:analyze',
+    });
+  }
+  return limiter;
 }
 
 const GEMINI_URL =
@@ -48,61 +42,6 @@ const MAX_NOTE_LENGTH = 500;
 // ~2MB of base64 is comfortably more than the 800px/0.7-quality JPEGs the
 // client sends; this just guards against an absurd payload reaching either API.
 const MAX_IMAGE_BASE64_LENGTH = 3_000_000;
-
-function buildPrompt(userNote: string): string {
-  return `You are a nutrition expert AI. Analyze the food in this image.
-The user has provided this note: "${userNote}" (use this to adjust portion size if mentioned).
-Return ONLY a valid JSON object with this exact structure, no extra text, no markdown:
-{
-  "foodName": "string",
-  "description": "string",
-  "servingSize": "string",
-  "calories": number,
-  "protein": number,
-  "carbs": number,
-  "fat": number,
-  "confidence": "low" | "medium" | "high"
-}
-If you cannot identify the food, return confidence as "low" and provide best estimates.`;
-}
-
-function parseNutritionJson(text: string): Omit<NutritionResult, 'provider'> {
-  let cleaned = text.trim();
-  if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-  }
-
-  const parsed = JSON.parse(cleaned);
-
-  if (
-    typeof parsed.foodName !== 'string' ||
-    typeof parsed.calories !== 'number' ||
-    typeof parsed.protein !== 'number' ||
-    typeof parsed.carbs !== 'number' ||
-    typeof parsed.fat !== 'number' ||
-    !Number.isFinite(parsed.calories) ||
-    !Number.isFinite(parsed.protein) ||
-    !Number.isFinite(parsed.carbs) ||
-    !Number.isFinite(parsed.fat)
-  ) {
-    throw new Error('Invalid nutrition data received from AI');
-  }
-
-  const clamp = (n: number) => Math.max(0, Math.round(n));
-
-  return {
-    foodName: parsed.foodName,
-    description: parsed.description || '',
-    servingSize: parsed.servingSize || 'Unknown',
-    calories: clamp(parsed.calories),
-    protein: clamp(parsed.protein),
-    carbs: clamp(parsed.carbs),
-    fat: clamp(parsed.fat),
-    confidence: ['low', 'medium', 'high'].includes(parsed.confidence)
-      ? parsed.confidence
-      : 'low',
-  };
-}
 
 async function callGemini(imageBase64: string, userNote: string): Promise<NutritionResult> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -182,20 +121,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const authHeader = req.headers.authorization ?? '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-  if (!token) {
-    res.status(401).json({ error: 'Missing Authorization header' });
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  let rateLimiter: Ratelimit;
+  try {
+    rateLimiter = getLimiter();
+  } catch (err) {
+    res.status(503).json({ error: reportServerError('analyze.config', err) });
     return;
   }
 
-  const { data: userData, error: authError } = await authClient.auth.getUser(token);
-  if (authError || !userData.user) {
-    res.status(401).json({ error: 'Invalid or expired session' });
-    return;
-  }
-
-  const { success, limit, remaining, reset } = await limiter.limit(userData.user.id);
+  const { success, limit, remaining, reset } = await rateLimiter.limit(user.id);
   if (!success) {
     res.setHeader('X-RateLimit-Limit', limit);
     res.setHeader('X-RateLimit-Remaining', remaining);
@@ -229,6 +166,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const geminiMsg = geminiError instanceof Error ? geminiError.message : 'unknown error';
       const fallbackMsg =
         fallbackError instanceof Error ? fallbackError.message : 'unknown error';
+      reportServerError('analyze.providers', fallbackError, {
+        userId: user.id,
+        geminiError: geminiMsg,
+      });
       res.status(502).json({
         error: `Analysis failed. Gemini: ${geminiMsg}. Fallback: ${fallbackMsg}`,
       });
