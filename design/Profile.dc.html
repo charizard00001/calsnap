@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #FF4D7A; } a:hover { color: #FFD23F; }
+    * { box-sizing: border-box; }
+    @keyframes march { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes wob { 0%,100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+    @keyframes blink { 0%,88%,100% { transform: scaleY(1); } 92% { transform: scaleY(0.08); } }
+    @keyframes stripes { from { background-position: 0 0; } to { background-position: 40px 0; } }
+    @keyframes buzz { 0%,100% { transform: translate(0,0); } 25% { transform: translate(1px,-1px); } 75% { transform: translate(-1px,1px); } }
+    .tapz:active { transform: translate(3px,3px) !important; box-shadow: 0 0 0 #0B0B10 !important; }
+    .scroller::-webkit-scrollbar { width: 0; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #0B0B10; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Space Grotesk', system-ui, sans-serif;">
+
+  <div style="position: absolute; inset: 0; pointer-events: none; opacity: 0.3; background-image: radial-gradient(circle at 82% 10%, {{accent}}55, transparent 42%), radial-gradient(circle at 8% 78%, #FF3D5A44, transparent 44%);"></div>
+
+  <div style="position: relative; display: flex; align-items: center; gap: 13px; padding: 22px 16px 16px;">
+    <div style="position: relative; width: 74px; height: 74px; border-radius: 22px; border: 4px solid #0B0B10; background: {{accent}}; box-shadow: 5px 5px 0 #0B0B10; display: flex; align-items: center; justify-content: center; flex-shrink: 0; animation: wob 3.6s ease-in-out infinite;">
+      <svg width="46" height="46" viewBox="0 0 70 70">
+        <path d="M12 40c0-16 10-27 23-27s23 11 23 27c0 12-9 18-23 18S12 52 12 40Z" fill="#FFF6E9" stroke="#0B0B10" stroke-width="3.5"></path>
+        <circle cx="28" cy="37" r="3.6" fill="#0B0B10" style="animation: blink 4.4s infinite;"></circle>
+        <circle cx="42" cy="37" r="3.6" fill="#0B0B10" style="animation: blink 4.4s infinite;"></circle>
+        <path d="M27 47c3 3 13 3 16 0" stroke="#0B0B10" stroke-width="3" stroke-linecap="round" fill="none"></path>
+      </svg>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 26px; color: #FFF6E9; line-height: 1; text-shadow: 3px 3px 0 {{accent}};">SHASHANK</div>
+      <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #9C9CB8;">stillnongdamba@gmail.com</div>
+      <div style="display: flex; gap: 6px;">
+        <span style="background: #C6F135; border: 2px solid #0B0B10; border-radius: 999px; padding: 1px 8px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">DAY 12</span>
+        <span style="background: #22D3EE; border: 2px solid #0B0B10; border-radius: 999px; padding: 1px 8px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">47 MEALS</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroller" style="position: relative; flex: 1; overflow-y: auto; padding: 0 16px 24px; display: flex; flex-direction: column; gap: 14px;">
+
+    <div style="display: flex; align-items: center; gap: 8px; padding-top: 2px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 13px; color: {{accent}}; letter-spacing: 1px;">YOUR TARGETS</div>
+      <div style="flex-grow: 1; height: 3px; background: #2A2A38; border-radius: 999px;"></div>
+    </div>
+
+    <sc-for list="{{goals}}" as="g" hint-placeholder-count="2">
+      <div style="{{g.cardStyle}}">
+        <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1; min-width: 0;">
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: #0B0B10;">{{g.label}}</span>
+          <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 700; color: #0B0B10; opacity: 0.68;">{{g.hint}}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <div onClick="{{g.dec}}" class="tapz" style="width: 44px; height: 44px; border: 3px solid #0B0B10; border-radius: 12px; background: #0B0B10; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.08s;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFF6E9" stroke-width="3.4" stroke-linecap="round"><path d="M6 12h12"></path></svg>
+          </div>
+          <div style="min-width: 66px; text-align: center; font-family: 'Bungee', Impact, sans-serif; font-size: 21px; color: #0B0B10;">{{g.value}}</div>
+          <div onClick="{{g.inc}}" class="tapz" style="width: 44px; height: 44px; border: 3px solid #0B0B10; border-radius: 12px; background: #0B0B10; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.08s;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFF6E9" stroke-width="3.4" stroke-linecap="round"><path d="M12 6v12"></path><path d="M6 12h12"></path></svg>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+
+    <div style="background: #16161F; border: 3px solid #2A2A38; border-radius: 18px; padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0;">
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: #FFF6E9;">SOUND FX</span>
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 500; color: #9C9CB8;">Boings, crunches, streak fanfare</span>
+      </div>
+      <div onClick="{{toggleSfx}}" class="tapz" style="{{sfxTrackStyle}}">
+        <div style="{{sfxKnobStyle}}"></div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px; padding-top: 4px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 13px; color: #FF3D5A; letter-spacing: 1px;">DANGER ZONE</div>
+      <div style="flex-grow: 1; height: 14px; border: 2px solid #FF3D5A; border-radius: 999px; background-image: repeating-linear-gradient(45deg, #FF3D5A 0 8px, transparent 8px 20px); background-size: 40px 40px; animation: stripes 1.6s linear infinite;"></div>
+    </div>
+
+    <div class="tapz" style="background: #16161F; border: 3px solid #12D8C5; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: transform 0.08s;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12D8C5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"></path><path d="M10 17l-5-5 5-5"></path><path d="M5 12h11"></path></svg>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: #12D8C5;">SIGN OUT</span>
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 500; color: #9C9CB8;">Your data stays on the account</span>
+      </div>
+    </div>
+
+    <div class="tapz" style="background: #FF9F45; border: 3px solid #0B0B10; border-radius: 16px; box-shadow: 5px 5px 0 #0B0B10; padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: transform 0.08s;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4 7h16"></path><path d="M9 7V5h6v2"></path><path d="M6 7l1 13h10l1-13"></path></svg>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: #0B0B10;">CLEAR TODAY</span>
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 700; color: #0B0B10; opacity: 0.7;">Wipes today&#39;s meals only</span>
+      </div>
+    </div>
+
+    <div class="tapz" style="background: #FF3D5A; border: 4px solid #0B0B10; border-radius: 16px; box-shadow: 5px 5px 0 #0B0B10; padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: transform 0.08s;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; animation: buzz 0.6s infinite;"><path d="M12 8v5"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 2.6 17.4A2 2 0 0 0 4.3 20.4h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 13px; color: #0B0B10;">DELETE ACCOUNT</span>
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 700; color: #0B0B10; opacity: 0.75;">Account, every meal, every photo. Gone.</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 0 2px;">
+      <a href="#" style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 700; text-decoration: none;">Privacy</a>
+      <span style="color: #2A2A38;">|</span>
+      <a href="#" style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 700; text-decoration: none;">Terms</a>
+      <span style="color: #2A2A38;">|</span>
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #55556E;">v1.0.0</span>
+    </div>
+  </div>
+
+  <div style="position: relative; height: 32px; border-top: 3px solid #0B0B10; background: {{accent}}; overflow: hidden; display: flex; align-items: center;">
+    <div style="display: flex; gap: 24px; white-space: nowrap; animation: march 15s linear infinite; font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #0B0B10; padding-left: 24px;">
+      <span>YOUR NUMBERS ★ YOUR RULES ★ YOUR NUMBERS ★ YOUR RULES ★</span>
+      <span>YOUR NUMBERS ★ YOUR RULES ★ YOUR NUMBERS ★ YOUR RULES ★</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#A86BFF","options":["#A86BFF","#FF4D7A","#12D8C5","#FFD23F"],"tsType":"string"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { kcal: 2000, protein: 150, sfx: true };
+  }
+
+  audio() {
+    if (this._ac === undefined) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      this._ac = AC ? new AC() : null;
+    }
+    return this._ac;
+  }
+
+  tick(up) {
+    if (!this.state.sfx) return;
+    var ac = this.audio();
+    if (!ac) return;
+    if (ac.state === 'suspended') ac.resume();
+    var t = ac.currentTime;
+    var o = ac.createOscillator();
+    var g = ac.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(up ? 660 : 440, t);
+    o.frequency.exponentialRampToValueAtTime(up ? 900 : 320, t + 0.06);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.1, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
+    o.connect(g).connect(ac.destination);
+    o.start(t);
+    o.stop(t + 0.13);
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#A86BFF';
+    var s = this.state;
+
+    var defs = [
+      { key: 'kcal', label: 'DAILY CALORIES', hint: 'kcal you aim for', step: 50, bg: '#FFD23F' },
+      { key: 'protein', label: 'DAILY PROTEIN', hint: 'grams you chase', step: 5, bg: '#12D8C5' }
+    ];
+
+    var goals = defs.map(function (d) {
+      return {
+        label: d.label,
+        hint: d.hint,
+        value: s[d.key],
+        cardStyle: 'display:flex;align-items:center;gap:10px;background:' + d.bg +
+          ';border:3px solid #0B0B10;border-radius:18px;box-shadow:5px 5px 0 #0B0B10;padding:12px;',
+        inc: function () { var n = {}; n[d.key] = s[d.key] + d.step; self.tick(true); self.setState(n); },
+        dec: function () { var n = {}; n[d.key] = Math.max(0, s[d.key] - d.step); self.tick(false); self.setState(n); }
+      };
+    });
+
+    return {
+      accent: accent,
+      goals: goals,
+      sfxTrackStyle: 'width:62px;height:36px;border-radius:999px;border:3px solid #0B0B10;cursor:pointer;' +
+        'display:flex;align-items:center;padding:3px;flex-shrink:0;transition:transform 0.08s;background:' +
+        (s.sfx ? '#C6F135' : '#2A2A38') + ';justify-content:' + (s.sfx ? 'flex-end' : 'flex-start') +
+        ';box-shadow:3px 3px 0 #0B0B10;',
+      sfxKnobStyle: 'width:24px;height:24px;border-radius:999px;border:3px solid #0B0B10;background:' +
+        (s.sfx ? '#0B0B10' : '#9C9CB8') + ';',
+      toggleSfx: function () {
+        var next = !s.sfx;
+        self.setState({ sfx: next });
+        if (next) { self.state.sfx = true; self.tick(true); }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

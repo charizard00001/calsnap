@@ -1,16 +1,16 @@
-import { Colors, FontSizes } from '@/constants/theme';
+import { Colors, Fonts, rampFor } from '@/constants/theme';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
-    Easing,
-    useAnimatedProps,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withTiming,
+  Easing,
+  useAnimatedProps,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
-import Svg, { Defs, LinearGradient, Stop, Circle as SvgCircle } from 'react-native-svg';
+import Svg, { Circle as SvgCircle } from 'react-native-svg';
 
 const AnimatedCircle = Animated.createAnimatedComponent(SvgCircle);
 
@@ -21,34 +21,28 @@ interface ProgressRingProps {
   strokeWidth?: number;
 }
 
+/**
+ * The calorie ring, arcade edition: a fat stroke on a dotted track, ringed
+ * in ink so it reads as one solid object rather than a thin gauge.
+ */
 export default function ProgressRing({
   consumed,
   goal,
-  size = 220,
-  strokeWidth = 14,
+  size = 224,
+  strokeWidth = 20,
 }: ProgressRingProps) {
-  const radius = (size - strokeWidth) / 2;
+  const radius = (size - strokeWidth - 14) / 2;
   const circumference = 2 * Math.PI * radius;
-  const progress = Math.min(consumed / Math.max(goal, 1), 1.5); // cap at 150% visually
+  const progress = Math.min(consumed / Math.max(goal, 1), 1);
   const remaining = Math.max(goal - consumed, 0);
-  const percentage = consumed / Math.max(goal, 1);
+  const over = consumed > goal;
+  const ringColor = rampFor(consumed, goal);
 
-  // Determine color based on percentage
-  let ringColor = Colors.accentCool; // Under 75%
-  let gradientId = 'blue';
-  if (percentage >= 1) {
-    ringColor = Colors.accentHot;
-    gradientId = 'red';
-  } else if (percentage >= 0.75) {
-    ringColor = Colors.accentWarm;
-    gradientId = 'orange';
-  }
-
-  // Pulse animation when over limit
-  const pulseScale = useSharedValue(1);
+  // Pulse when over the limit — the one place the ring nags.
+  const pulse = useSharedValue(1);
   React.useEffect(() => {
-    if (percentage >= 1) {
-      pulseScale.value = withRepeat(
+    if (over) {
+      pulse.value = withRepeat(
         withSequence(
           withTiming(1.03, { duration: 800, easing: Easing.inOut(Easing.ease) }),
           withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
@@ -57,69 +51,82 @@ export default function ProgressRing({
         true
       );
     } else {
-      pulseScale.value = 1;
+      pulse.value = withTiming(1, { duration: 200 });
     }
-  }, [percentage >= 1]);
+  }, [over, pulse]);
+
+  const sweep = useSharedValue(0);
+  React.useEffect(() => {
+    sweep.value = withTiming(progress, {
+      duration: 1400,
+      easing: Easing.bezier(0.2, 0.9, 0.25, 1),
+    });
+  }, [progress, sweep]);
 
   const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
+    transform: [{ scale: pulse.value }],
   }));
 
   const animatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: circumference * (1 - Math.min(progress, 1)),
+    strokeDashoffset: circumference * (1 - sweep.value),
   }));
+
+  const centre = size / 2;
 
   return (
     <Animated.View style={[styles.container, { width: size, height: size }, pulseStyle]}>
       <Svg width={size} height={size}>
-        <Defs>
-          <LinearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={Colors.accentCool} />
-            <Stop offset="1" stopColor={Colors.accentSecondary} />
-          </LinearGradient>
-          <LinearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={Colors.accentWarm} />
-            <Stop offset="1" stopColor={Colors.accentGold} />
-          </LinearGradient>
-          <LinearGradient id="red" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={Colors.accentHot} />
-            <Stop offset="1" stopColor={Colors.accentWarm} />
-          </LinearGradient>
-        </Defs>
-
-        {/* Background ring */}
+        {/* Ink outline around the whole dial */}
         <SvgCircle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={Colors.cardBg}
-          strokeWidth={strokeWidth}
+          cx={centre}
+          cy={centre}
+          r={radius + strokeWidth / 2 + 4}
           fill="none"
+          stroke={Colors.ink}
+          strokeWidth={4}
         />
-
-        {/* Progress ring */}
-        <AnimatedCircle
-          cx={size / 2}
-          cy={size / 2}
+        <SvgCircle
+          cx={centre}
+          cy={centre}
+          r={radius - strokeWidth / 2 - 2}
+          fill={Colors.cardBg}
+          stroke={Colors.ink}
+          strokeWidth={5}
+        />
+        {/* Dotted track */}
+        <SvgCircle
+          cx={centre}
+          cy={centre}
           r={radius}
-          stroke={`url(#${gradientId})`}
-          strokeWidth={strokeWidth}
           fill="none"
+          stroke={Colors.hairline}
+          strokeWidth={strokeWidth}
+          strokeDasharray="4 12"
+          strokeLinecap="round"
+        />
+        {/* Progress */}
+        <AnimatedCircle
+          cx={centre}
+          cy={centre}
+          r={radius}
+          fill="none"
+          stroke={ringColor}
+          strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           animatedProps={animatedProps}
           strokeLinecap="round"
-          rotation={-90}
-          origin={`${size / 2}, ${size / 2}`}
+          transform={`rotate(-90 ${centre} ${centre})`}
         />
       </Svg>
 
-      {/* Center text */}
       <View style={styles.centerText}>
-        <Text style={[styles.calorieNumber, { color: ringColor }]}>
-          {consumed}
-        </Text>
-        <Text style={styles.label}>Calories</Text>
-        <Text style={styles.remaining}>{remaining} left</Text>
+        <Text style={styles.calorieNumber}>{consumed}</Text>
+        <Text style={[styles.label, { color: ringColor }]}>CALORIES IN</Text>
+        <View style={[styles.pill, { backgroundColor: ringColor }]}>
+          <Text style={styles.pillText}>
+            {over ? `${consumed - goal} OVER` : `${remaining} LEFT`}
+          </Text>
+        </View>
       </View>
     </Animated.View>
   );
@@ -135,19 +142,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   calorieNumber: {
-    fontSize: FontSizes.display,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
+    fontFamily: Fonts.display,
+    fontSize: 46,
+    lineHeight: 50,
+    color: Colors.paper,
   },
   label: {
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    marginTop: 2,
+    fontFamily: Fonts.display,
+    fontSize: 10,
+    letterSpacing: 1,
+    marginTop: 1,
   },
-  remaining: {
-    fontSize: FontSizes.md,
-    color: Colors.textMuted,
-    marginTop: 4,
-    fontVariant: ['tabular-nums'],
+  pill: {
+    marginTop: 7,
+    borderRadius: 999,
+    borderWidth: 3,
+    borderColor: Colors.ink,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  pillText: {
+    fontFamily: Fonts.display,
+    fontSize: 10,
+    color: Colors.ink,
   },
 });

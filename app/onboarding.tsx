@@ -1,80 +1,59 @@
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import Animated, {
-    Easing,
-    FadeIn,
-    FadeInUp,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withTiming,
-} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import CrazyButton from '@/components/CrazyButton';
-import ParticleBackground from '@/components/ParticleBackground';
-import { BorderRadius, Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
+import ArcadeBg from '@/components/ui/ArcadeBg';
+import Confetti from '@/components/ui/Confetti';
+import Icon from '@/components/ui/Icon';
+import Marquee from '@/components/ui/Marquee';
+import Snappy from '@/components/ui/Snappy';
+import Sticker from '@/components/ui/Sticker';
+import StickerPressable from '@/components/ui/StickerPressable';
+import { Colors, Fonts } from '@/constants/theme';
 import { completeOnboarding } from '@/lib/profile';
+import { sfx } from '@/lib/sfx';
 import { supabase } from '@/lib/supabase';
 import type { UserGoals } from '@/types';
 import { saveUserGoals, setOnboardingComplete } from '@/utils/storage';
-import { useQueryClient } from '@tanstack/react-query';
 import { useOnboardingContext } from './_layout';
 
-const { width } = Dimensions.get('window');
+const STEPS = 5;
+const CAL_PRESETS = [1600, 2000, 2400];
+const PRO_PRESETS = [110, 150, 190];
 
 export default function OnboardingScreen() {
-  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { markOnboarded } = useOnboardingContext();
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
-  const [calorieGoal, setCalorieGoal] = useState('2000');
-  const [proteinGoal, setProteinGoal] = useState('150');
+  const [calorieGoal, setCalorieGoal] = useState(2000);
+  const [proteinGoal, setProteinGoal] = useState(150);
+  const [burst, setBurst] = useState(0);
 
-  // Glow animation for the final step
-  const glowScale = useSharedValue(1);
-  React.useEffect(() => {
-    if (step === 4) {
-      glowScale.value = withRepeat(
-        withSequence(
-          withTiming(1.15, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-          withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        true
-      );
-    }
-  }, [step]);
-
-  const glowStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: glowScale.value }],
-  }));
-
-  const handleNext = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setStep((s) => s + 1);
+  const next = () => {
+    sfx('up');
+    setStep((s) => Math.min(s + 1, STEPS - 1));
   };
 
   const handleComplete = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setBurst((n) => n + 1);
+    sfx('fanfare');
 
     const goals: UserGoals = {
       name: name.trim() || 'Friend',
-      calorieGoal: parseInt(calorieGoal, 10) || 2000,
-      proteinGoal: parseInt(proteinGoal, 10) || 150,
+      calorieGoal,
+      proteinGoal,
       installDate: new Date().toISOString(),
     };
 
@@ -85,113 +64,224 @@ export default function OnboardingScreen() {
     if (data.user) await setOnboardingComplete(data.user.id);
     await completeOnboarding(goals).catch(() => {});
 
-    // Signal to root layout that onboarding is done — it will handle navigation
+    // Signal to root layout that onboarding is done — it handles navigation.
     markOnboarded();
   };
 
-  const steps = [
-    // Step 0: Welcome
-    <Animated.View key="welcome" entering={FadeIn.duration(1000)} style={styles.stepContainer}>
-      <Text style={styles.welcomeText}>Let's get{'\n'}you set up</Text>
-      <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
-        Begin
-      </CrazyButton>
-    </Animated.View>,
-
-    // Step 1: Name
-    <Animated.View key="name" entering={FadeInUp.duration(600)} style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>What's your name?</Text>
-      <Text style={styles.stepSubtitle}>So we know what to call you</Text>
-      <TextInput
-        style={styles.stepInput}
-        value={name}
-        onChangeText={setName}
-        placeholder="(optional)"
-        placeholderTextColor={Colors.textMuted}
-        autoFocus
-      />
-      <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
-        Continue
-      </CrazyButton>
-    </Animated.View>,
-
-    // Step 2: Calorie Goal
-    <Animated.View key="calories" entering={FadeInUp.duration(600)} style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Daily calorie goal</Text>
-      <Text style={styles.stepSubtitle}>How many calories per day?</Text>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.stepInputNumber}
-          value={calorieGoal}
-          onChangeText={setCalorieGoal}
-          keyboardType="numeric"
-          autoFocus
-        />
-        <Text style={styles.inputUnit}>kcal</Text>
-      </View>
-      <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
-        Continue
-      </CrazyButton>
-    </Animated.View>,
-
-    // Step 3: Protein Goal
-    <Animated.View key="protein" entering={FadeInUp.duration(600)} style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Daily protein goal</Text>
-      <Text style={styles.stepSubtitle}>How much protein per day?</Text>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.stepInputNumber}
-          value={proteinGoal}
-          onChangeText={setProteinGoal}
-          keyboardType="numeric"
-          autoFocus
-        />
-        <Text style={styles.inputUnit}>g</Text>
-      </View>
-      <CrazyButton onPress={handleNext} gradient={Gradients.purpleToBlue} style={styles.nextBtn}>
-        Continue
-      </CrazyButton>
-    </Animated.View>,
-
-    // Step 4: Ready
-    <Animated.View key="ready" entering={FadeIn.duration(1000)} style={styles.stepContainer}>
-      <Animated.View style={[styles.readyGlow, glowStyle]}>
-        <LinearGradient
-          colors={[Colors.accentPrimary + '40', Colors.accentSecondary + '20', 'transparent']}
-          style={styles.readyGlowGradient}
-        />
-      </Animated.View>
-      <Text style={styles.readyText}>You're all{'\n'}set!</Text>
-      <CrazyButton onPress={handleComplete} gradient={Gradients.purpleToRed} style={styles.nextBtn}>
-        Let's go ⚡
-      </CrazyButton>
-    </Animated.View>,
-  ];
-
   return (
     <View style={styles.container}>
-      <ParticleBackground />
+      <ArcadeBg glows={[Colors.accentWarm, Colors.accentSecondary]} />
+
+      <View style={{ height: insets.top }} />
+
+      <View style={styles.dotsRow}>
+        {Array.from({ length: STEPS }, (_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.dot,
+              i === step && styles.dotActive,
+              i < step && styles.dotDone,
+            ]}
+          />
+        ))}
+      </View>
+
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Progress dots */}
-        <View style={styles.dotsRow}>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                i === step && styles.dotActive,
-                i < step && styles.dotDone,
-              ]}
-            />
-          ))}
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {step === 0 && (
+            <View style={styles.stepBlock}>
+              <Snappy size={112} mood="ready" />
+              <Text style={styles.headline}>LET&apos;S GET{'\n'}YOU SET UP</Text>
+              <Text style={styles.sub}>Four quick questions. Then you eat.</Text>
+              <PrimaryButton label="BEGIN" onPress={next} />
+            </View>
+          )}
 
-        {steps[step]}
+          {step === 1 && (
+            <View style={styles.stepBlock}>
+              <Text style={styles.headline}>WHAT DO WE{'\n'}CALL YOU?</Text>
+              <Text style={styles.sub}>Shows up on your dashboard. Optional.</Text>
+              <Sticker color={Colors.paper} radius={22} shadow={6} border={4} contentStyle={styles.card}>
+                <TextInput
+                  style={styles.nameInput}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Your name"
+                  placeholderTextColor={Colors.ink + '55'}
+                  autoFocus
+                  returnKeyType="next"
+                  onSubmitEditing={next}
+                />
+              </Sticker>
+              <PrimaryButton label="CONTINUE" onPress={next} />
+            </View>
+          )}
+
+          {step === 2 && (
+            <View style={styles.stepBlock}>
+              <Text style={styles.headline}>HOW MANY{'\n'}CALORIES?</Text>
+              <Text style={styles.sub}>Rough is fine. Change it any time.</Text>
+              <NumberDial
+                value={calorieGoal}
+                unit="KCAL"
+                step={50}
+                min={800}
+                presets={CAL_PRESETS}
+                onChange={setCalorieGoal}
+              />
+              <PrimaryButton label="CONTINUE" onPress={next} />
+            </View>
+          )}
+
+          {step === 3 && (
+            <View style={styles.stepBlock}>
+              <Text style={styles.headline}>AND HOW MUCH{'\n'}PROTEIN?</Text>
+              <Text style={styles.sub}>Grams per day you want to hit.</Text>
+              <NumberDial
+                value={proteinGoal}
+                unit="GRAMS"
+                step={5}
+                min={20}
+                presets={PRO_PRESETS}
+                onChange={setProteinGoal}
+              />
+              <PrimaryButton label="CONTINUE" onPress={next} />
+            </View>
+          )}
+
+          {step === 4 && (
+            <View style={styles.stepBlock}>
+              <View style={styles.readyWrap}>
+                <Confetti trigger={burst} count={18} spread={95} />
+                <Snappy size={118} mood="streak" />
+              </View>
+              <Text style={styles.headline}>YOU&apos;RE ALL{'\n'}SET!</Text>
+              <View style={styles.summaryRow}>
+                <Sticker color={Colors.accentGold} radius={14} shadow={4} contentStyle={styles.summaryChip}>
+                  <Text style={styles.summaryValue}>{calorieGoal}</Text>
+                  <Text style={styles.summaryLabel}>KCAL</Text>
+                </Sticker>
+                <Sticker color={Colors.accentPrimary} radius={14} shadow={4} contentStyle={styles.summaryChip}>
+                  <Text style={styles.summaryValue}>{proteinGoal}g</Text>
+                  <Text style={styles.summaryLabel}>PROTEIN</Text>
+                </Sticker>
+              </View>
+              <PrimaryButton label="START SNAPPING" onPress={handleComplete} color={Colors.accentLime} />
+            </View>
+          )}
+        </ScrollView>
       </KeyboardAvoidingView>
+
+      <Marquee
+        text={`STEP ${step + 1} OF ${STEPS} ★ ALMOST EATING`}
+        color={Colors.accentGold}
+        duration={14}
+        height={34}
+        style={{ marginBottom: insets.bottom }}
+      />
     </View>
+  );
+}
+
+function PrimaryButton({
+  label,
+  onPress,
+  color = Colors.accentWarm,
+}: {
+  label: string;
+  onPress: () => void;
+  color?: string;
+}) {
+  return (
+    <StickerPressable
+      color={color}
+      radius={20}
+      shadow={6}
+      border={4}
+      sound={null}
+      onPress={onPress}
+      style={styles.ctaWrap}
+      contentStyle={styles.cta}
+    >
+      <Text style={styles.ctaText}>{label}</Text>
+      <Icon name="forward" size={22} color={Colors.ink} strokeWidth={3.2} />
+    </StickerPressable>
+  );
+}
+
+function NumberDial({
+  value,
+  unit,
+  step,
+  min,
+  presets,
+  onChange,
+}: {
+  value: number;
+  unit: string;
+  step: number;
+  min: number;
+  presets: number[];
+  onChange: (v: number) => void;
+}) {
+  return (
+    <Sticker color={Colors.paper} radius={26} shadow={7} border={4} contentStyle={styles.dial}>
+      <View style={styles.dialValueRow}>
+        <Text style={styles.dialValue}>{value}</Text>
+        <Text style={styles.dialUnit}>{unit}</Text>
+      </View>
+
+      <View style={styles.dialControls}>
+        <StickerPressable
+          color={Colors.accentCool}
+          radius={18}
+          shadow={4}
+          border={4}
+          sound="down"
+          onPress={() => onChange(Math.max(min, value - step))}
+          contentStyle={styles.dialBtn}
+          accessibilityLabel="Decrease"
+        >
+          <Icon name="minus" size={22} color={Colors.ink} strokeWidth={3.6} />
+        </StickerPressable>
+        <Text style={styles.dialStep}>STEP {step}</Text>
+        <StickerPressable
+          color={Colors.accentLime}
+          radius={18}
+          shadow={4}
+          border={4}
+          sound="up"
+          onPress={() => onChange(value + step)}
+          contentStyle={styles.dialBtn}
+          accessibilityLabel="Increase"
+        >
+          <Icon name="plus" size={22} color={Colors.ink} strokeWidth={3.6} />
+        </StickerPressable>
+      </View>
+
+      <View style={styles.presetRow}>
+        {presets.map((p) => (
+          <StickerPressable
+            key={p}
+            color={value === p ? Colors.accentGold : Colors.paperDim}
+            radius={999}
+            shadow={value === p ? 3 : 0}
+            onPress={() => onChange(p)}
+            contentStyle={styles.preset}
+          >
+            <Text style={styles.presetText}>{p}</Text>
+          </StickerPressable>
+        ))}
+      </View>
+    </Sticker>
   );
 }
 
@@ -200,105 +290,166 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.primaryBg,
   },
+  flex: {
+    flex: 1,
+  },
   dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: 8,
-    paddingTop: 70,
+    paddingTop: 22,
+    paddingBottom: 4,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.textMuted + '40',
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    borderWidth: 3,
+    borderColor: Colors.ink,
+    backgroundColor: Colors.hairline,
   },
   dotActive: {
-    backgroundColor: Colors.accentPrimary,
-    width: 24,
+    width: 34,
+    backgroundColor: Colors.accentWarm,
   },
   dotDone: {
-    backgroundColor: Colors.accentPrimary + '60',
+    backgroundColor: Colors.paper,
   },
-  stepContainer: {
-    flex: 1,
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  stepBlock: {
     alignItems: 'center',
-    padding: Spacing.xl,
+    gap: 18,
   },
-  welcomeText: {
-    fontSize: FontSizes.xxxl,
-    fontWeight: '800',
-    color: Colors.textPrimary,
+  headline: {
+    fontFamily: Fonts.display,
+    fontSize: 30,
+    lineHeight: 36,
+    color: Colors.paper,
     textAlign: 'center',
-    lineHeight: 48,
-    marginBottom: Spacing.xxl,
   },
-  stepTitle: {
-    fontSize: FontSizes.xxl,
-    fontWeight: '800',
-    color: Colors.textPrimary,
+  sub: {
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
     textAlign: 'center',
-    marginBottom: Spacing.sm,
+    maxWidth: 270,
+    marginTop: -10,
   },
-  stepSubtitle: {
-    fontSize: FontSizes.md,
-    color: Colors.textMuted,
+  card: {
+    width: '100%',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  nameInput: {
+    fontFamily: Fonts.display,
+    fontSize: 22,
+    color: Colors.ink,
     textAlign: 'center',
-    marginBottom: Spacing.xl,
+    paddingVertical: 12,
+    minHeight: 56,
   },
-  stepInput: {
-    fontSize: FontSizes.xxl,
-    color: Colors.textPrimary,
-    fontWeight: '700',
-    textAlign: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.accentPrimary,
-    paddingVertical: Spacing.sm,
-    width: width * 0.6,
-    marginBottom: Spacing.xxl,
+  dial: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 20,
+    paddingHorizontal: 18,
   },
-  stepInputNumber: {
-    fontSize: FontSizes.display,
-    color: Colors.textPrimary,
-    fontWeight: '900',
-    textAlign: 'center',
-    fontVariant: ['tabular-nums'],
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.accentPrimary,
-    paddingVertical: Spacing.sm,
-    minWidth: 120,
-  },
-  inputRow: {
+  dialValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xxl,
+    gap: 8,
   },
-  inputUnit: {
-    fontSize: FontSizes.xl,
+  dialValue: {
+    fontFamily: Fonts.display,
+    fontSize: 52,
+    lineHeight: 58,
+    color: Colors.ink,
+  },
+  dialUnit: {
+    fontFamily: Fonts.display,
+    fontSize: 15,
+    color: Colors.accentWarm,
+  },
+  dialControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  dialBtn: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dialStep: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 11,
+    letterSpacing: 1.2,
     color: Colors.textMuted,
-    fontWeight: '600',
   },
-  nextBtn: {
-    width: width * 0.7,
+  presetRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
-  readyGlow: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    marginBottom: Spacing.xl,
+  preset: {
+    minHeight: 44,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  readyGlowGradient: {
+  presetText: {
+    fontFamily: Fonts.display,
+    fontSize: 11,
+    color: Colors.ink,
+  },
+  readyWrap: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    gap: 11,
+  },
+  summaryChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    alignItems: 'center',
+  },
+  summaryValue: {
+    fontFamily: Fonts.display,
+    fontSize: 19,
+    color: Colors.ink,
+  },
+  summaryLabel: {
+    fontFamily: Fonts.display,
+    fontSize: 8,
+    color: Colors.ink,
+  },
+  ctaWrap: {
     width: '100%',
-    height: '100%',
-    borderRadius: 100,
+    marginTop: 4,
   },
-  readyText: {
-    fontSize: FontSizes.xxxl,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    lineHeight: 48,
-    marginBottom: Spacing.xxl,
+  cta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    minHeight: 60,
+  },
+  ctaText: {
+    fontFamily: Fonts.display,
+    fontSize: 18,
+    color: Colors.ink,
   },
 });

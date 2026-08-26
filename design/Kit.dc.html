@@ -1,0 +1,284 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #FF4D7A; } a:hover { color: #FFD23F; }
+    * { box-sizing: border-box; }
+    @keyframes wob { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes blink { 0%,88%,100% { transform: scaleY(1); } 92% { transform: scaleY(0.08); } }
+    @keyframes march { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes flick { 0%,100% { transform: rotate(-6deg) scale(1); } 50% { transform: rotate(6deg) scale(1.1); } }
+    @keyframes barfill { from { width: 0%; } }
+    .tapz:active { transform: translate(3px,3px) !important; box-shadow: 0 0 0 #0B0B10 !important; }
+  </style>
+</helmet>
+
+<div style="width: 1180px; height: 1020px; background: #0B0B10; position: relative; overflow: hidden; font-family: 'Space Grotesk', system-ui, sans-serif; padding: 0;">
+
+  <div style="position: absolute; inset: 0; pointer-events: none; opacity: 0.24; background-image: radial-gradient(circle at 8% 6%, #FF4D7A66, transparent 34%), radial-gradient(circle at 92% 12%, #12D8C566, transparent 32%), radial-gradient(circle at 50% 96%, #A86BFF55, transparent 38%);"></div>
+  <div style="position: absolute; inset: 0; pointer-events: none; opacity: 0.12; background-image: linear-gradient(#FFF6E9 1px, transparent 1px), linear-gradient(90deg, #FFF6E9 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+  <div style="position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 34px 40px 22px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 52px; line-height: 1; color: #FFF6E9; text-shadow: 5px 5px 0 #FF4D7A;">SNACK ARCADE</div>
+      <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 14px; font-weight: 700; color: #9C9CB8; letter-spacing: 2px; text-transform: uppercase;">CalSnap design kit &mdash; sticker-punk, built on the existing brand tokens</div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <div style="background: #C6F135; border: 3px solid #0B0B10; border-radius: 12px; padding: 7px 13px; box-shadow: 4px 4px 0 #0B0B10; animation: wob 3.2s ease-in-out infinite;">
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: #0B0B10;">V1</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="position: relative; height: 36px; border-top: 3px solid #0B0B10; border-bottom: 3px solid #0B0B10; background: #FFD23F; overflow: hidden; display: flex; align-items: center; margin-bottom: 26px;">
+    <div style="display: flex; gap: 30px; white-space: nowrap; animation: march 18s linear infinite; font-family: 'Bungee', Impact, sans-serif; font-size: 13px; color: #0B0B10; padding-left: 30px;">
+      <span>THICK OUTLINES ★ HARD SHADOWS ★ NO GRADIENT MUSH ★ ONE JOKE PER SCREEN ★</span>
+      <span>THICK OUTLINES ★ HARD SHADOWS ★ NO GRADIENT MUSH ★ ONE JOKE PER SCREEN ★</span>
+    </div>
+  </div>
+
+  <div style="position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; padding: 0 40px;">
+
+    <div style="background: #16161F; border: 3px solid #2A2A38; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 16px; color: #C6F135; letter-spacing: 1px;">PALETTE</div>
+      <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 500; color: #9C9CB8; line-height: 1.5;">Six are the app&#39;s existing tokens. Lime and violet are the two additions, matched in chroma so they sit in the same family.</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px;">
+        <sc-for list="{{swatches}}" as="s" hint-placeholder-count="8">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="{{s.chip}}"></div>
+            <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 8px; font-weight: 700; color: #FFF6E9;">{{s.name}}</span>
+            <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 7px; font-weight: 500; color: #55556E;">{{s.hex}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="border-top: 2px solid #2A2A38; padding-top: 12px; display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #FFF6E9;">STATUS RAMP</span>
+        <div style="display: flex; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #12D8C5; border: 2px solid #0B0B10;"></div><span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #9C9CB8;">Under</span></div>
+          <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #FFD23F; border: 2px solid #0B0B10;"></div><span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #9C9CB8;">Close</span></div>
+          <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #FF3D5A; border: 2px solid #0B0B10;"></div><span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #9C9CB8;">Over</span></div>
+        </div>
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 500; color: #55556E; line-height: 1.45;">Teal, not lime, for &ldquo;under&rdquo; &mdash; lime and gold are indistinguishable to deuteranopes. Always paired with a number.</span>
+      </div>
+    </div>
+
+    <div style="background: #16161F; border: 3px solid #2A2A38; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 16px; color: #C6F135; letter-spacing: 1px;">TYPE</div>
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #55556E; letter-spacing: 1.4px;">BUNGEE &mdash; DISPLAY</span>
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 38px; color: #FFF6E9; line-height: 1;">1240 KCAL</span>
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 19px; color: #FF4D7A; line-height: 1.2;">TODAY&#39;S HAUL</span>
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #12D8C5;">SMALL LABEL CAPS</span>
+      </div>
+      <div style="height: 2px; background: #2A2A38;"></div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #55556E; letter-spacing: 1.4px;">SPACE GROTESK &mdash; BODY</span>
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 15px; font-weight: 700; color: #FFF6E9;">Bold 15 &mdash; card titles and values</span>
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 13px; font-weight: 500; color: #9C9CB8; line-height: 1.5;">Regular 13 &mdash; the sentence that explains what just happened, kept to two lines or fewer.</span>
+        <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 700; color: #55556E; letter-spacing: 1.2px;">CAPS 10 &mdash; META AND TIMESTAMPS</span>
+      </div>
+      <div style="background: #0B0B10; border-radius: 12px; padding: 11px; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 500; color: #9C9CB8; line-height: 1.5;">Display is for nouns and numbers only. Never set a sentence in Bungee &mdash; it stops being loud and starts being unreadable.</div>
+    </div>
+
+    <div style="background: #16161F; border: 3px solid #2A2A38; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 16px; color: #C6F135; letter-spacing: 1px;">STICKER ANATOMY</div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 116px; height: 84px; background: #FFD23F; border: 3px solid #0B0B10; border-radius: 18px; box-shadow: 6px 6px 0 #0B0B10; display: flex; align-items: center; justify-content: center;">
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 13px; color: #0B0B10;">STICKER</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #9C9CB8;">
+          <span>3px ink outline</span>
+          <span>16&ndash;24px radius</span>
+          <span>6px hard offset shadow</span>
+          <span>&plusmn;1&ndash;3&deg; rotation</span>
+        </div>
+      </div>
+      <div style="height: 2px; background: #2A2A38;"></div>
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #55556E; letter-spacing: 1.4px;">PRESSED STATE</span>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 100px; height: 52px; background: #FFD23F; border: 3px solid #0B0B10; border-radius: 14px; box-shadow: 5px 5px 0 #0B0B10; display: flex; align-items: center; justify-content: center;"><span style="font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #0B0B10;">REST</span></div>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#55556E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"></path><path d="M13 6l6 6-6 6"></path></svg>
+        <div style="width: 100px; height: 52px; background: #FFD23F; border: 3px solid #0B0B10; border-radius: 14px; transform: translate(3px,3px); display: flex; align-items: center; justify-content: center;"><span style="font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #0B0B10;">PRESSED</span></div>
+      </div>
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 500; color: #55556E; line-height: 1.45;">The shadow collapses and the sticker moves into it. Every tappable surface does this &mdash; it is the whole feedback language.</span>
+    </div>
+  </div>
+
+  <div style="position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; padding: 22px 40px 0;">
+
+    <div style="background: #16161F; border: 3px solid #2A2A38; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 16px; color: #C6F135; letter-spacing: 1px;">ICONS</div>
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 500; color: #9C9CB8; line-height: 1.5;">Stroke-drawn on a 24px grid, 2.6px weight, round caps. Never an emoji &mdash; they don&#39;t recolour and they render differently on every device.</span>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 11px;">
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF4D7A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"></rect><circle cx="12" cy="13" r="3.4"></circle><path d="M8 6l1.6-2.4h4.8L16 6"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12D8C5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"></path><path d="M3 17h18"></path><path d="M12 9V4"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFD23F" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11"></path><path d="M10 20V4"></path><path d="M16 20v-6"></path><path d="M22 20H2"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C6F135" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c0 4-5 5-5 9a5 5 0 0 0 10 0c0-2-1-3-2-4 0 2-1 3-2 3 1-3 0-6-1-8Z"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A86BFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.2 6.4L21 10.2l-5.2 4.3L17 21l-5-3.4L7 21l1.2-6.5L3 10.2l6.8-1.8Z"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF9F45" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF3D5A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 2.6 17.4A2 2 0 0 0 4.3 20.4h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFF6E9" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12D8C5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6"></path><path d="M4.5 10a8 8 0 1 1 1.2 7"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFD23F" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4a5 5 0 0 1 0 10H9a5 5 0 0 1 0-10Z"></path><path d="M9 14v6"></path><path d="M15 14v6"></path></svg>
+        </div>
+        <div style="aspect-ratio: 1; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF4D7A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9 7V5h6v2"></path><path d="M6 7l1 13h10l1-13"></path></svg>
+        </div>
+      </div>
+    </div>
+
+    <div style="background: #16161F; border: 3px solid #2A2A38; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 16px; color: #C6F135; letter-spacing: 1px;">SNAPPY</div>
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 500; color: #9C9CB8; line-height: 1.5;">The mascot is the AI, not a decoration. It appears where the model has an opinion &mdash; the verdict, the nudge, the streak.</span>
+      <div style="display: flex; align-items: center; justify-content: space-around; gap: 10px; padding: 6px 0;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+          <svg width="72" height="72" viewBox="0 0 70 70" style="animation: float 3.6s ease-in-out infinite;">
+            <path d="M12 40c0-16 10-27 23-27s23 11 23 27c0 12-9 18-23 18S12 52 12 40Z" fill="#12D8C5" stroke="#0B0B10" stroke-width="3.5"></path>
+            <rect x="23" y="29" width="24" height="18" rx="6" fill="#FFF6E9" stroke="#0B0B10" stroke-width="3"></rect>
+            <circle cx="35" cy="38" r="5.2" fill="#0B0B10" style="animation: blink 4s infinite;"></circle>
+            <circle cx="37" cy="36" r="1.7" fill="#FFF6E9"></circle>
+            <path d="M26 53c3.5 3.5 14 3.5 17.5 0" stroke="#0B0B10" stroke-width="3" stroke-linecap="round" fill="none"></path>
+          </svg>
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 9px; color: #12D8C5;">READY</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+          <svg width="72" height="72" viewBox="0 0 70 70">
+            <path d="M12 40c0-16 10-27 23-27s23 11 23 27c0 12-9 18-23 18S12 52 12 40Z" fill="#A86BFF" stroke="#0B0B10" stroke-width="3.5"></path>
+            <rect x="23" y="29" width="24" height="18" rx="6" fill="#FFF6E9" stroke="#0B0B10" stroke-width="3"></rect>
+            <path d="M28 38h5" stroke="#0B0B10" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M38 38h5" stroke="#0B0B10" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M28 53h14" stroke="#0B0B10" stroke-width="3" stroke-linecap="round"></path>
+          </svg>
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 9px; color: #A86BFF;">THINKING</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 7px;">
+          <svg width="72" height="72" viewBox="0 0 70 70">
+            <path d="M12 40c0-16 10-27 23-27s23 11 23 27c0 12-9 18-23 18S12 52 12 40Z" fill="#FFF6E9" stroke="#0B0B10" stroke-width="3.5"></path>
+            <path d="M18 20l4-9 6 6 7-9 7 9 6-6 4 9Z" fill="#FFD23F" stroke="#0B0B10" stroke-width="3" stroke-linejoin="round"></path>
+            <circle cx="27" cy="38" r="4.4" fill="#0B0B10"></circle>
+            <circle cx="43" cy="38" r="4.4" fill="#0B0B10"></circle>
+            <path d="M25 47c4 5 16 5 20 0" stroke="#0B0B10" stroke-width="3.4" stroke-linecap="round" fill="none"></path>
+          </svg>
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 9px; color: #FFD23F;">STREAK</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="background: #16161F; border: 3px solid #2A2A38; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 13px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 16px; color: #C6F135; letter-spacing: 1px;">MOTION &amp; SOUND</div>
+      <sc-for list="{{motion}}" as="m" hint-placeholder-count="5">
+        <div style="display: flex; gap: 11px; align-items: flex-start;">
+          <div style="{{m.dot}}"></div>
+          <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1; min-width: 0;">
+            <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 10px; color: #FFF6E9;">{{m.name}}</span>
+            <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 500; color: #9C9CB8; line-height: 1.45;">{{m.desc}}</span>
+          </div>
+        </div>
+      </sc-for>
+      <div style="background: #0B0B10; border-radius: 12px; padding: 11px; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 500; color: #55556E; line-height: 1.5;">Every sound is synthesised in-app, no audio files. All of it is behind one switch in Profile, default on.</div>
+    </div>
+  </div>
+
+  <div style="position: relative; display: flex; align-items: center; gap: 14px; padding: 24px 40px 0; flex-wrap: wrap;">
+    <div class="tapz" style="background: #FF4D7A; border: 4px solid #0B0B10; border-radius: 18px; box-shadow: 6px 6px 0 #0B0B10; min-height: 56px; padding: 0 26px; display: flex; align-items: center; gap: 9px; cursor: pointer; transition: transform 0.08s;">
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #0B0B10;">PRIMARY</span>
+    </div>
+    <div class="tapz" style="background: #C6F135; border: 4px solid #0B0B10; border-radius: 18px; box-shadow: 6px 6px 0 #0B0B10; min-height: 56px; padding: 0 26px; display: flex; align-items: center; gap: 9px; cursor: pointer; transition: transform 0.08s;">
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #0B0B10;">CONFIRM</span>
+    </div>
+    <div class="tapz" style="background: transparent; border: 3px solid #55556E; border-radius: 18px; min-height: 56px; padding: 0 26px; display: flex; align-items: center; cursor: pointer; transition: transform 0.08s;">
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #9C9CB8;">QUIET</span>
+    </div>
+    <div class="tapz" style="background: #FF3D5A; border: 4px solid #0B0B10; border-radius: 18px; box-shadow: 6px 6px 0 #0B0B10; min-height: 56px; padding: 0 26px; display: flex; align-items: center; gap: 9px; cursor: pointer; transition: transform 0.08s;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"></path><path d="M12 17h.01"></path><path d="M10.3 3.9 2.6 17.4A2 2 0 0 0 4.3 20.4h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path></svg>
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #0B0B10;">DESTRUCTIVE</span>
+    </div>
+    <div style="background: #FFD23F; border: 3px solid #0B0B10; border-radius: 999px; padding: 5px 13px; box-shadow: 3px 3px 0 #0B0B10;">
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 10px; color: #0B0B10;">PILL / BADGE</span>
+    </div>
+    <div style="flex-grow: 1; min-width: 180px; display: flex; flex-direction: column; gap: 5px;">
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #55556E; letter-spacing: 1.4px;">PROGRESS BAR</span>
+      <div style="height: 13px; background: #0B0B10; border: 2px solid #2A2A38; border-radius: 999px; overflow: hidden;">
+        <div style="height: 100%; width: 62%; background: #12D8C5; animation: barfill 1.4s cubic-bezier(0.2,0.9,0.25,1) both;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1180,"height":1020}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var pal = [
+      { name: 'CORAL', hex: '#FF4D7A' },
+      { name: 'TEAL', hex: '#12D8C5' },
+      { name: 'GOLD', hex: '#FFD23F' },
+      { name: 'CYAN', hex: '#22D3EE' },
+      { name: 'AMBER', hex: '#FF9F45' },
+      { name: 'HOT', hex: '#FF3D5A' },
+      { name: 'LIME +', hex: '#C6F135' },
+      { name: 'VIOLET +', hex: '#A86BFF' }
+    ];
+
+    var swatches = pal.map(function (p) {
+      return {
+        name: p.name,
+        hex: p.hex,
+        chip: 'height:42px;border-radius:11px;border:3px solid #0B0B10;background:' + p.hex + ';'
+      };
+    });
+
+    var motionDefs = [
+      { c: '#FF4D7A', name: 'STICKER PRESS', desc: 'Shadow collapses, surface moves 3px into it. 80ms.' },
+      { c: '#FFD23F', name: 'RING FILL', desc: 'Calorie ring sweeps once on open, 1.5s, decelerating.' },
+      { c: '#C6F135', name: 'MARQUEE', desc: 'One strip per screen, 10-15s linear. Never two at once.' },
+      { c: '#A86BFF', name: 'CONFETTI POP', desc: 'Fires on save and on streak. 20 pieces, radial, 1s.' },
+      { c: '#12D8C5', name: 'BOING / CRUNCH', desc: 'Sine drop plus filtered noise on the shutter. 0.3s.' }
+    ];
+
+    return {
+      swatches: swatches,
+      motion: motionDefs.map(function (m) {
+        return {
+          name: m.name,
+          desc: m.desc,
+          dot: 'width:12px;height:12px;border-radius:4px;flex-shrink:0;margin-top:3px;border:2px solid #0B0B10;background:' + m.c + ';'
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

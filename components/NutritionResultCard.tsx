@@ -1,217 +1,326 @@
-import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
+import Chip from '@/components/ui/Chip';
+import Icon, { type IconName } from '@/components/ui/Icon';
+import Snappy from '@/components/ui/Snappy';
+import Sticker from '@/components/ui/Sticker';
+import StickerPressable from '@/components/ui/StickerPressable';
+import { Colors, Fonts } from '@/constants/theme';
 import type { NutritionResult } from '@/types';
-import { confidenceToGrade } from '@/types';
-import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface NutritionResultCardProps {
   result: NutritionResult;
   onUpdate: (updated: NutritionResult) => void;
 }
 
+const CONFIDENCE_COPY: Record<string, { label: string; color: string }> = {
+  high: { label: 'PRETTY SURE', color: Colors.accentLime },
+  medium: { label: 'FAIRLY SURE', color: Colors.accentGold },
+  low: { label: 'BEST GUESS', color: Colors.accentWarm },
+};
+
 export default function NutritionResultCard({
   result,
   onUpdate,
 }: NutritionResultCardProps) {
-  const grade = confidenceToGrade(result.confidence);
-  const gradeColor =
-    grade === 'S'
-      ? Colors.success
-      : grade === 'A'
-      ? Colors.accentCool
-      : grade === 'B'
-      ? Colors.accentGold
-      : Colors.accentHot;
+  const conf = CONFIDENCE_COPY[result.confidence] ?? CONFIDENCE_COPY.low;
 
-  const updateField = (field: keyof NutritionResult, value: string) => {
-    const numFields = ['calories', 'protein', 'carbs', 'fat'] as const;
-    if ((numFields as readonly string[]).includes(field)) {
-      const num = parseInt(value, 10);
-      onUpdate({ ...result, [field]: isNaN(num) ? 0 : num });
-    } else {
-      onUpdate({ ...result, [field]: value });
-    }
+  const bump = (field: 'protein' | 'carbs' | 'fat', delta: number) => {
+    const next = Math.max(0, result[field] + delta);
+    const updated = { ...result, [field]: next };
+    // Calories are derived from the macros, so they stay honest while the
+    // user corrects the AI rather than drifting out of sync with them.
+    updated.calories = updated.protein * 4 + updated.carbs * 4 + updated.fat * 9;
+    onUpdate(updated);
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header with food name and grade */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.foodName}>{result.foodName}</Text>
-          <Text style={styles.description} numberOfLines={2}>
-            {result.description}
-          </Text>
-          <Text style={styles.serving}>{result.servingSize}</Text>
+    <View style={styles.wrap}>
+      <Sticker color={Colors.paper} radius={24} shadow={7} border={4} contentStyle={styles.card}>
+        <View style={styles.headRow}>
+          <View style={styles.thumb}>
+            <Icon name="plate" size={30} color={Colors.ink} strokeWidth={2.4} />
+          </View>
+          <View style={styles.headText}>
+            <Text style={styles.foodName}>{result.foodName.toUpperCase()}</Text>
+            {!!result.description && (
+              <Text style={styles.description} numberOfLines={3}>
+                {result.description}
+              </Text>
+            )}
+          </View>
         </View>
-        <View style={[styles.gradeBadge, { borderColor: gradeColor }]}>
-          <Text style={[styles.gradeLabel, { color: gradeColor }]}>Grade</Text>
-          <Text style={[styles.gradeText, { color: gradeColor }]}>{grade}</Text>
+
+        <View style={styles.kcalRow}>
+          <Text style={styles.kcal}>{result.calories}</Text>
+          <Text style={styles.kcalUnit}>KCAL</Text>
+          <View style={styles.kcalSpacer} />
+          <Chip label={(result.servingSize || 'ONE SERVING').toUpperCase()} color={Colors.accentGold} />
         </View>
+      </Sticker>
+
+      <View style={styles.confidenceWrap}>
+        <Chip label={conf.label} color={conf.color} />
       </View>
 
-      {/* Stats Grid */}
-      <View style={styles.statsGrid}>
-        <StatRow
-          label="⚡ Calories"
-          value={String(result.calories)}
-          unit="kcal"
-          color={Colors.accentWarm}
-          onChangeText={(v) => updateField('calories', v)}
+      <View style={styles.macroList}>
+        <MacroStepper
+          label="PROTEIN"
+          hint="keeps you full"
+          initial="P"
+          icon="protein"
+          color={Colors.accentPrimary}
+          value={result.protein}
+          onChange={(d) => bump('protein', d)}
         />
-        <StatRow
-          label="💪 STR (Protein)"
-          value={String(result.protein)}
-          unit="g"
-          color={Colors.accentHot}
-          onChangeText={(v) => updateField('protein', v)}
-        />
-        <StatRow
-          label="⚡ AGI (Carbs)"
-          value={String(result.carbs)}
-          unit="g"
+        <MacroStepper
+          label="CARBS"
+          hint="the rice and roti"
+          initial="C"
+          icon="carbs"
           color={Colors.accentGold}
-          onChangeText={(v) => updateField('carbs', v)}
+          value={result.carbs}
+          onChange={(d) => bump('carbs', d)}
         />
-        <StatRow
-          label="🛡️ DEF (Fat)"
-          value={String(result.fat)}
-          unit="g"
+        <MacroStepper
+          label="FAT"
+          hint="oil, ghee, gravy"
+          initial="F"
+          icon="fat"
           color={Colors.accentCool}
-          onChangeText={(v) => updateField('fat', v)}
+          value={result.fat}
+          onChange={(d) => bump('fat', d)}
         />
+      </View>
+
+      <View style={styles.snappyRow}>
+        <Snappy size={44} mood="thinking" />
+        <View style={styles.snappyCopy}>
+          <Text style={styles.snappyTitle}>SNAPPY&apos;S TAKE</Text>
+          <Text style={styles.snappyBody}>
+            Numbers off? Nudge them — calories update as you go.
+          </Text>
+        </View>
       </View>
     </View>
   );
 }
 
-function StatRow({
+function MacroStepper({
   label,
-  value,
-  unit,
+  hint,
+  initial,
+  icon,
   color,
-  onChangeText,
+  value,
+  onChange,
 }: {
   label: string;
-  value: string;
-  unit: string;
+  hint: string;
+  initial: string;
+  icon: IconName;
   color: string;
-  onChangeText: (v: string) => void;
+  value: number;
+  onChange: (delta: number) => void;
 }) {
   return (
-    <View style={styles.statRow}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <View style={styles.statValueRow}>
-        <TextInput
-          style={[styles.statInput, { color }]}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType="numeric"
-          selectTextOnFocus
-        />
-        <Text style={[styles.statUnit, { color: color + '80' }]}>{unit}</Text>
+    <Sticker color={color} radius={18} shadow={5} contentStyle={styles.macroCard}>
+      <View style={styles.macroLeft}>
+        <View style={styles.macroBadge}>
+          <Text style={[styles.macroInitial, { color }]}>{initial}</Text>
+        </View>
+        <View style={styles.macroLabels}>
+          <Text style={styles.macroLabel}>{label}</Text>
+          <Text style={styles.macroHint}>{hint}</Text>
+        </View>
       </View>
-      {/* Progress bar */}
-      <View style={styles.statBar}>
-        <LinearGradient
-          colors={[color, color + '60']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[
-            styles.statBarFill,
-            { width: `${Math.min((parseInt(value, 10) || 0) / (unit === 'kcal' ? 20 : 1.5), 100)}%` as any },
-          ]}
-        />
+
+      <View style={styles.stepperRow}>
+        <StickerPressable
+          color={Colors.ink}
+          radius={12}
+          shadow={0}
+          sound="down"
+          onPress={() => onChange(-1)}
+          contentStyle={styles.stepBtn}
+          accessibilityLabel={`Decrease ${label}`}
+        >
+          <Icon name="minus" size={18} color={Colors.paper} strokeWidth={3.4} />
+        </StickerPressable>
+
+        <Text style={styles.macroValue}>
+          {value}
+          <Text style={styles.macroValueUnit}>g</Text>
+        </Text>
+
+        <StickerPressable
+          color={Colors.ink}
+          radius={12}
+          shadow={0}
+          sound="up"
+          onPress={() => onChange(1)}
+          contentStyle={styles.stepBtn}
+          accessibilityLabel={`Increase ${label}`}
+        >
+          <Icon name="plus" size={18} color={Colors.paper} strokeWidth={3.4} />
+        </StickerPressable>
       </View>
-    </View>
+    </Sticker>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.accentPrimary + '30',
+  wrap: {
+    gap: 14,
   },
-  header: {
+  card: {
+    padding: 16,
+    gap: 12,
+  },
+  headRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.md,
+    gap: 12,
   },
-  headerLeft: {
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
-  foodName: {
-    fontSize: FontSizes.xl,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  description: {
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  serving: {
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-    marginTop: 4,
-  },
-  gradeBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: BorderRadius.md,
-    borderWidth: 2,
+  thumb: {
+    width: 62,
+    height: 62,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: Colors.ink,
+    backgroundColor: Colors.accentWarm,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primaryBg,
   },
-  gradeLabel: {
-    fontSize: FontSizes.xs,
-    fontWeight: '600',
-  },
-  gradeText: {
-    fontSize: FontSizes.xxl,
-    fontWeight: '900',
-  },
-  statsGrid: {
-    gap: Spacing.sm,
-  },
-  statRow: {
+  headText: {
+    flex: 1,
     gap: 4,
   },
-  statLabel: {
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    fontWeight: '600',
+  foodName: {
+    fontFamily: Fonts.display,
+    fontSize: 18,
+    lineHeight: 21,
+    color: Colors.ink,
   },
-  statValueRow: {
+  description: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.textMuted,
+  },
+  kcalRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
+    alignItems: 'center',
+    gap: 8,
+    borderTopWidth: 3,
+    borderStyle: 'dashed',
+    borderColor: Colors.ink,
+    paddingTop: 12,
   },
-  statInput: {
-    fontSize: FontSizes.xl,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
-    padding: 0,
-    minWidth: 50,
+  kcal: {
+    fontFamily: Fonts.display,
+    fontSize: 40,
+    lineHeight: 44,
+    color: Colors.ink,
   },
-  statUnit: {
-    fontSize: FontSizes.sm,
-    fontWeight: '500',
+  kcalUnit: {
+    fontFamily: Fonts.display,
+    fontSize: 14,
+    color: Colors.accentPrimary,
   },
-  statBar: {
-    height: 4,
-    backgroundColor: Colors.primaryBg,
-    borderRadius: 2,
-    overflow: 'hidden',
+  kcalSpacer: {
+    flex: 1,
   },
-  statBarFill: {
-    height: '100%',
-    borderRadius: 2,
+  confidenceWrap: {
+    alignItems: 'flex-start',
+  },
+  macroList: {
+    gap: 10,
+  },
+  macroCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+  },
+  macroLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  macroBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: Colors.ink,
+    backgroundColor: Colors.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  macroInitial: {
+    fontFamily: Fonts.display,
+    fontSize: 13,
+  },
+  macroLabels: {
+    flex: 1,
+  },
+  macroLabel: {
+    fontFamily: Fonts.display,
+    fontSize: 12,
+    color: Colors.ink,
+  },
+  macroHint: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 10,
+    color: Colors.ink,
+    opacity: 0.65,
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  stepBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  macroValue: {
+    fontFamily: Fonts.display,
+    fontSize: 19,
+    color: Colors.ink,
+    minWidth: 54,
+    textAlign: 'center',
+  },
+  macroValueUnit: {
+    fontSize: 11,
+  },
+  snappyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    backgroundColor: Colors.cardBg,
+    borderRadius: 18,
+    borderWidth: 3,
+    borderColor: Colors.accentViolet,
+    padding: 13,
+  },
+  snappyCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  snappyTitle: {
+    fontFamily: Fonts.display,
+    fontSize: 11,
+    color: Colors.accentViolet,
+  },
+  snappyBody: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.paper,
   },
 });

@@ -1,0 +1,189 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #FFD23F; } a:hover { color: #C6F135; }
+    * { box-sizing: border-box; }
+    @keyframes rays { to { transform: rotate(360deg); } }
+    @keyframes slam { 0% { transform: scale(3) rotate(-18deg); opacity: 0; } 55% { transform: scale(0.88) rotate(5deg); opacity: 1; } 78% { transform: scale(1.06) rotate(-2deg); } 100% { transform: scale(1) rotate(-3deg); opacity: 1; } }
+    @keyframes riseup { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes float { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-12px) rotate(4deg); } }
+    @keyframes blink { 0%,88%,100% { transform: scaleY(1); } 92% { transform: scaleY(0.08); } }
+    @keyframes march { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes pop-a { 0% { transform: translate(0,0) scale(0.3) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); opacity: 0; } }
+    @keyframes pop-b { 0% { transform: translate(0,0) scale(0.3) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); opacity: 0; } }
+    .tapz:active { transform: translate(3px,3px) !important; box-shadow: 0 0 0 #0B0B10 !important; }
+  </style>
+</helmet>
+
+<div onClick="{{again}}" style="width: 390px; height: 844px; background: {{accent}}; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Space Grotesk', system-ui, sans-serif; cursor: pointer;">
+
+  <div style="position: absolute; top: 50%; left: 50%; width: 900px; height: 900px; margin: -450px 0 0 -450px; opacity: 0.16; animation: rays 26s linear infinite; background-image: repeating-conic-gradient(#0B0B10 0deg 12deg, transparent 12deg 24deg); pointer-events: none;"></div>
+  <div style="position: absolute; inset: 0; pointer-events: none; opacity: 0.18; background-image: radial-gradient(#0B0B10 1.6px, transparent 1.7px); background-size: 14px 14px;"></div>
+
+  <div style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px 24px 12px;">
+
+    <div style="position: relative; animation: float 3.6s ease-in-out infinite;">
+      <svg width="128" height="128" viewBox="0 0 70 70">
+        <path d="M12 40c0-16 10-27 23-27s23 11 23 27c0 12-9 18-23 18S12 52 12 40Z" fill="#FFF6E9" stroke="#0B0B10" stroke-width="3.5"></path>
+        <path d="M18 20l4-9 6 6 7-9 7 9 6-6 4 9Z" fill="#FFD23F" stroke="#0B0B10" stroke-width="3" stroke-linejoin="round"></path>
+        <circle cx="27" cy="38" r="4.4" fill="#0B0B10" style="animation: blink 4s infinite;"></circle>
+        <circle cx="43" cy="38" r="4.4" fill="#0B0B10" style="animation: blink 4s infinite;"></circle>
+        <path d="M25 47c4 5 16 5 20 0" stroke="#0B0B10" stroke-width="3.4" stroke-linecap="round" fill="none"></path>
+        <path d="M29 48h12" stroke="#FF3D5A" stroke-width="4" stroke-linecap="round"></path>
+      </svg>
+      <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+        <sc-if value="{{burst}}" hint-placeholder-val="{{ true }}">
+          <div style="position: relative; width: 0; height: 0;">
+            <sc-for list="{{confetti}}" as="c" hint-placeholder-count="18">
+              <div style="{{c.style}}"></div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="background: #0B0B10; border: 5px solid #FFF6E9; border-radius: 22px; padding: 10px 20px; box-shadow: 8px 8px 0 #0B0B1055; animation: slam 0.7s cubic-bezier(0.2,0.9,0.25,1) both;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #C6F135; letter-spacing: 2px; text-align: center;">STREAK UNLOCKED</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; animation: riseup 0.5s 0.25s cubic-bezier(0.2,0.9,0.25,1) both;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 128px; line-height: 0.82; color: #0B0B10; text-shadow: 7px 7px 0 #FFF6E9;">12</div>
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 30px; color: #0B0B10; letter-spacing: 5px;">DAYS</div>
+    </div>
+
+    <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 15px; font-weight: 700; color: #0B0B10; text-align: center; max-width: 290px; line-height: 1.5; text-wrap: pretty; animation: riseup 0.5s 0.4s cubic-bezier(0.2,0.9,0.25,1) both;">Twelve days straight of actually logging. Six more and you beat your record.</div>
+
+    <div style="display: flex; gap: 9px; animation: riseup 0.5s 0.5s cubic-bezier(0.2,0.9,0.25,1) both;">
+      <div style="background: #0B0B10; border-radius: 999px; padding: 6px 14px;">
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #FFD23F;">47 MEALS</span>
+      </div>
+      <div style="background: #0B0B10; border-radius: 999px; padding: 6px 14px;">
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #12D8C5;">BEST: 18</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="position: relative; padding: 0 24px 22px; display: flex; flex-direction: column; gap: 11px; animation: riseup 0.5s 0.6s cubic-bezier(0.2,0.9,0.25,1) both;">
+    <div class="tapz" style="background: #0B0B10; border: 4px solid #FFF6E9; border-radius: 20px; min-height: 58px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: transform 0.08s;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFF6E9" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path><path d="M12 15V3"></path><path d="M8 7l4-4 4 4"></path></svg>
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #FFF6E9;">SHOW IT OFF</span>
+    </div>
+    <div class="tapz" style="background: transparent; border: 3px solid #0B0B10; border-radius: 18px; min-height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.08s;">
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 13px; color: #0B0B10;">BACK TO EATING</span>
+    </div>
+  </div>
+
+  <div style="position: relative; height: 34px; border-top: 4px solid #0B0B10; background: #0B0B10; overflow: hidden; display: flex; align-items: center;">
+    <div style="display: flex; gap: 26px; white-space: nowrap; animation: march 10s linear infinite; font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: {{accent}}; padding-left: 26px;">
+      <span>DON&#39;T BREAK THE CHAIN ★ DON&#39;T BREAK THE CHAIN ★</span>
+      <span>DON&#39;T BREAK THE CHAIN ★ DON&#39;T BREAK THE CHAIN ★</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#FF4D7A","options":["#FF4D7A","#FFD23F","#12D8C5","#A86BFF"],"tsType":"string"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { burst: true, parity: 0 };
+  }
+
+  componentDidMount() {
+    var self = this;
+    this._t = setTimeout(function () { self.setState({ burst: false }); }, 1100);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._t);
+  }
+
+  audio() {
+    if (this._ac === undefined) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      this._ac = AC ? new AC() : null;
+    }
+    return this._ac;
+  }
+
+  // Four-note rising fanfare with a noise "shaker" on top.
+  fanfare() {
+    var ac = this.audio();
+    if (!ac) return;
+    if (ac.state === 'suspended') ac.resume();
+    var t = ac.currentTime;
+
+    [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
+      var o = ac.createOscillator();
+      var g = ac.createGain();
+      o.type = i === 3 ? 'sawtooth' : 'square';
+      o.frequency.value = f;
+      var s = t + i * 0.11;
+      g.gain.setValueAtTime(0.0001, s);
+      g.gain.exponentialRampToValueAtTime(i === 3 ? 0.17 : 0.11, s + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, s + (i === 3 ? 0.55 : 0.22));
+      o.connect(g).connect(ac.destination);
+      o.start(s);
+      o.stop(s + 0.6);
+    });
+
+    var len = Math.floor(ac.sampleRate * 0.5);
+    var buf = ac.createBuffer(1, len, ac.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+    var src = ac.createBufferSource();
+    var hp = ac.createBiquadFilter();
+    var g2 = ac.createGain();
+    src.buffer = buf;
+    hp.type = 'highpass';
+    hp.frequency.value = 4200;
+    g2.gain.value = 0.1;
+    src.connect(hp).connect(g2).connect(ac.destination);
+    src.start(t + 0.3);
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#FF4D7A';
+    var shades = ['#FFD23F', '#12D8C5', '#FFF6E9', '#C6F135', '#A86BFF', '#22D3EE'];
+    var name = this.state.parity ? 'pop-b' : 'pop-a';
+
+    var confetti = [];
+    for (var i = 0; i < 20; i++) {
+      var ang = (i / 20) * Math.PI * 2;
+      var dist = 90 + (i % 5) * 26;
+      var size = 9 + (i % 4) * 5;
+      confetti.push({
+        style: 'position:absolute;width:' + size + 'px;height:' + size + 'px;background:' +
+          shades[i % shades.length] + ';border:2.5px solid #0B0B10;border-radius:' +
+          (i % 3 === 0 ? '999px' : '3px') + ';--dx:' + Math.round(Math.cos(ang) * dist) +
+          'px;--dy:' + Math.round(Math.sin(ang) * dist) + 'px;--rot:' + (i * 53) +
+          'deg;animation:' + name + ' 1.05s cubic-bezier(0.12,0.8,0.3,1) both;'
+      });
+    }
+
+    return {
+      accent: accent,
+      burst: this.state.burst,
+      confetti: confetti,
+      again: function () {
+        self.fanfare();
+        self.setState({ burst: true, parity: self.state.parity ? 0 : 1 });
+        clearTimeout(self._t);
+        self._t = setTimeout(function () { self.setState({ burst: false }); }, 1100);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

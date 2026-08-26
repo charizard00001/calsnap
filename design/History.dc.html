@@ -1,0 +1,216 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #FF4D7A; } a:hover { color: #FFD23F; }
+    * { box-sizing: border-box; }
+    @keyframes riseup { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes march { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes wob { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+    .tapz:active { transform: translate(2px,2px) !important; box-shadow: 0 0 0 #0B0B10 !important; }
+    .scroller::-webkit-scrollbar { width: 0; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #0B0B10; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Space Grotesk', system-ui, sans-serif;">
+
+  <div style="position: absolute; inset: 0; pointer-events: none; opacity: 0.3; background-image: radial-gradient(circle at 88% 8%, {{accent}}55, transparent 42%), radial-gradient(circle at 10% 60%, #A86BFF44, transparent 44%);"></div>
+
+  <div style="position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 20px 16px 12px;">
+    <div style="display: flex; flex-direction: column; gap: 3px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 30px; line-height: 1; color: #FFF6E9; text-shadow: 3px 3px 0 {{accent}};">THE TAPE</div>
+      <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #9C9CB8; letter-spacing: 1.5px; text-transform: uppercase;">Last 30 days of evidence</div>
+    </div>
+    <div style="background: #C6F135; border: 3px solid #0B0B10; border-radius: 12px; padding: 6px 10px; box-shadow: 4px 4px 0 #0B0B10; display: flex; flex-direction: column; align-items: center; animation: wob 3.2s ease-in-out infinite;">
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 17px; color: #0B0B10; line-height: 1;">23</span>
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 7px; color: #0B0B10;">HIT DAYS</span>
+    </div>
+  </div>
+
+  <div style="position: relative; display: flex; gap: 7px; padding: 0 16px 10px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 5px; background: #16161F; border: 2px solid #12D8C5; border-radius: 999px; padding: 3px 9px;">
+      <div style="width: 9px; height: 9px; border-radius: 3px; background: #12D8C5; border: 1.5px solid #0B0B10;"></div>
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #12D8C5;">UNDER GOAL</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px; background: #16161F; border: 2px solid #FFD23F; border-radius: 999px; padding: 3px 9px;">
+      <div style="width: 9px; height: 9px; border-radius: 3px; background: #FFD23F; border: 1.5px solid #0B0B10;"></div>
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #FFD23F;">CLOSE</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px; background: #16161F; border: 2px solid #FF3D5A; border-radius: 999px; padding: 3px 9px;">
+      <div style="width: 9px; height: 9px; border-radius: 3px; background: #FF3D5A; border: 1.5px solid #0B0B10;"></div>
+      <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #FF3D5A;">BLEW IT</span>
+    </div>
+  </div>
+
+  <div class="scroller" style="position: relative; flex: 1; overflow-y: auto; padding: 4px 16px 22px; display: flex; flex-direction: column; gap: 16px;">
+
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;">
+      <sc-for list="{{days}}" as="d" hint-placeholder-count="30">
+        <div onClick="{{d.pick}}" class="tapz" style="{{d.style}}">
+          <span style="{{d.numStyle}}">{{d.num}}</span>
+          <span style="{{d.kcalStyle}}">{{d.kcal}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background: #FFF6E9; border: 4px solid #0B0B10; border-radius: 24px; box-shadow: 7px 7px 0 #0B0B10; padding: 16px; display: flex; flex-direction: column; gap: 13px; animation: riseup 0.4s cubic-bezier(0.2,0.9,0.25,1) both;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 19px; color: #0B0B10;">{{sel.date}}</div>
+        <div style="{{sel.badgeStyle}}">{{sel.badge}}</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px;">
+        <div style="background: #0B0B10; border-radius: 12px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #FF9F45;">{{sel.kcal}}</span>
+          <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 8px; font-weight: 700; color: #9C9CB8; letter-spacing: 0.6px;">KCAL</span>
+        </div>
+        <div style="background: #0B0B10; border-radius: 12px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #FF4D7A;">{{sel.p}}g</span>
+          <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 8px; font-weight: 700; color: #9C9CB8; letter-spacing: 0.6px;">PROTEIN</span>
+        </div>
+        <div style="background: #0B0B10; border-radius: 12px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #FFD23F;">{{sel.c}}g</span>
+          <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 8px; font-weight: 700; color: #9C9CB8; letter-spacing: 0.6px;">CARBS</span>
+        </div>
+        <div style="background: #0B0B10; border-radius: 12px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 15px; color: #22D3EE;">{{sel.f}}g</span>
+          <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 8px; font-weight: 700; color: #9C9CB8; letter-spacing: 0.6px;">FAT</span>
+        </div>
+      </div>
+
+      <div style="height: 3px; background: #0B0B10; border-radius: 999px; opacity: 0.15;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px;">
+        <sc-for list="{{sel.meals}}" as="m" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="{{m.chipStyle}}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"></path><path d="M3 17h18"></path><path d="M12 9V4"></path></svg>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1; min-width: 0;">
+              <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: #0B0B10;">{{m.name}}</span>
+              <span style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 700; color: #55556E;">{{m.time}}</span>
+            </div>
+            <span style="background: #0B0B10; border-radius: 999px; padding: 3px 9px; font-family: 'Bungee', Impact, sans-serif; font-size: 10px; color: #C6F135; flex-shrink: 0;">{{m.kcal}}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div class="tapz" style="background: #A86BFF; border: 3px solid #0B0B10; border-radius: 14px; box-shadow: 4px 4px 0 #0B0B10; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.08s;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6"></path><path d="M4.5 10a8 8 0 1 1 1.2 7"></path></svg>
+        <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: #0B0B10;">RE-LOG THIS DAY</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="position: relative; height: 32px; border-top: 3px solid #0B0B10; background: {{accent}}; overflow: hidden; display: flex; align-items: center;">
+    <div style="display: flex; gap: 24px; white-space: nowrap; animation: march 14s linear infinite; font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #0B0B10; padding-left: 24px;">
+      <span>TAP A DAY ★ RELIVE THE DAMAGE ★ TAP A DAY ★ RELIVE THE DAMAGE ★</span>
+      <span>TAP A DAY ★ RELIVE THE DAMAGE ★ TAP A DAY ★ RELIVE THE DAMAGE ★</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#12D8C5","options":["#12D8C5","#FF4D7A","#FFD23F","#C6F135"],"tsType":"string"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 24 };
+  }
+
+  audio() {
+    if (this._ac === undefined) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      this._ac = AC ? new AC() : null;
+    }
+    return this._ac;
+  }
+
+  pop() {
+    var ac = this.audio();
+    if (!ac) return;
+    if (ac.state === 'suspended') ac.resume();
+    var t = ac.currentTime;
+    var o = ac.createOscillator();
+    var g = ac.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(620, t);
+    o.frequency.exponentialRampToValueAtTime(880, t + 0.05);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.1, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+    o.connect(g).connect(ac.destination);
+    o.start(t);
+    o.stop(t + 0.12);
+  }
+
+  renderVals() {
+    var self = this;
+    var goal = 2000;
+    // Deterministic sample month so the grid reads like real logged data.
+    var seed = [1780, 2130, 0, 1620, 1955, 2410, 1840, 1710, 0, 2260, 1890, 1540,
+      2050, 1980, 2380, 1660, 0, 1875, 2120, 1930, 1450, 2290, 1810, 1240,
+      2040, 1760, 0, 1990, 2150, 1880];
+
+    var days = seed.map(function (kcal, i) {
+      var num = i + 1;
+      var on = self.state.sel === num;
+      // Status ramp validated for CVD separation against the dark surface:
+      // teal / gold / red (lime failed against gold at deutan ΔE 1.5).
+      var color = kcal === 0 ? '#2A2A38' : kcal <= goal * 0.9 ? '#12D8C5' : kcal <= goal ? '#FFD23F' : '#FF3D5A';
+      var ink = kcal === 0 ? '#55556E' : '#0B0B10';
+      return {
+        num: num,
+        kcal: kcal === 0 ? '—' : kcal,
+        style: 'position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+          'gap:1px;aspect-ratio:1;border-radius:12px;cursor:pointer;transition:transform 0.08s;background:' + color +
+          ';border:' + (on ? '3px solid #FFF6E9' : '3px solid #0B0B10') +
+          ';box-shadow:' + (on ? '4px 4px 0 #FFF6E9' : '3px 3px 0 #0B0B10') +
+          ';transform:' + (on ? 'translate(-1px,-1px) rotate(-3deg)' : 'none') + ';',
+        numStyle: "font-family:'Bungee',Impact,sans-serif;font-size:13px;line-height:1;color:" + ink + ';',
+        kcalStyle: "font-family:'Space Grotesk',system-ui,sans-serif;font-size:7px;font-weight:700;color:" +
+          ink + ';opacity:0.7;',
+        pick: function () { self.pop(); self.setState({ sel: num }); }
+      };
+    });
+
+    var k = seed[this.state.sel - 1] || 0;
+    var over = k > goal;
+    var badge = k === 0 ? 'NOTHING LOGGED' : over ? 'OVER BY ' + (k - goal) : 'UNDER BY ' + (goal - k);
+    var badgeBg = k === 0 ? '#55556E' : over ? '#FF3D5A' : '#12D8C5';
+
+    return {
+      accent: this.props.accent || '#12D8C5',
+      days: days,
+      sel: {
+        date: 'AUG ' + this.state.sel,
+        kcal: k === 0 ? '0' : k,
+        p: Math.round(k * 0.22 / 4),
+        c: Math.round(k * 0.46 / 4),
+        f: Math.round(k * 0.32 / 9),
+        badge: badge,
+        badgeStyle: 'background:' + badgeBg + ';border:3px solid #0B0B10;border-radius:999px;padding:4px 11px;' +
+          "font-family:'Bungee',Impact,sans-serif;font-size:10px;color:#0B0B10;",
+        meals: k === 0 ? [] : [
+          { name: 'OATS &amp; BERRIES', time: '8:04 AM · morning', kcal: Math.round(k * 0.3),
+            chipStyle: 'width:38px;height:38px;border-radius:11px;border:3px solid #0B0B10;background:#12D8C5;display:flex;align-items:center;justify-content:center;flex-shrink:0;' },
+          { name: 'PANEER BOWL', time: '1:12 PM · midday', kcal: Math.round(k * 0.44),
+            chipStyle: 'width:38px;height:38px;border-radius:11px;border:3px solid #0B0B10;background:#FF9F45;display:flex;align-items:center;justify-content:center;flex-shrink:0;' },
+          { name: 'DAL &amp; RICE', time: '8:40 PM · evening', kcal: Math.round(k * 0.26),
+            chipStyle: 'width:38px;height:38px;border-radius:11px;border:3px solid #0B0B10;background:#22D3EE;display:flex;align-items:center;justify-content:center;flex-shrink:0;' }
+        ]
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

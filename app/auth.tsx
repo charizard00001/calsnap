@@ -1,25 +1,32 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Appear } from '@/components/Appear';
-import CrazyButton from '@/components/CrazyButton';
-import ParticleBackground from '@/components/ParticleBackground';
-import { Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
+import ArcadeBg from '@/components/ui/ArcadeBg';
+import Icon from '@/components/ui/Icon';
+import Marquee from '@/components/ui/Marquee';
+import Snappy from '@/components/ui/Snappy';
+import Sticker from '@/components/ui/Sticker';
+import StickerPressable from '@/components/ui/StickerPressable';
+import { Colors, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 type Mode = 'signIn' | 'signUp';
 
 export default function AuthScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -85,82 +92,147 @@ export default function AuthScreen() {
 
   return (
     <View style={styles.container}>
-      <ParticleBackground />
+      <ArcadeBg glows={[Colors.accentPrimary, Colors.accentSecondary]} />
+
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Appear from="none" duration={800} style={styles.content}>
-          <Text style={styles.title}>CalSnap</Text>
-          <Text style={styles.subtitle}>
-            {mode === 'signIn' ? 'Welcome back' : "Let's get started"}
-          </Text>
-
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email"
-            placeholderTextColor={Colors.textMuted}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Password"
-            placeholderTextColor={Colors.textMuted}
-            secureTextEntry
-            autoCapitalize="none"
-            autoComplete={mode === 'signUp' ? 'new-password' : 'password'}
-          />
-
-          {error && <Text style={styles.errorText}>{error}</Text>}
-          {info && <Text style={styles.infoText}>{info}</Text>}
-
-          <CrazyButton
-            onPress={handleEmailAuth}
-            gradient={Gradients.purpleToBlue}
-            loading={loading}
-            style={styles.primaryBtn}
-          >
-            {mode === 'signIn' ? 'Sign In' : 'Sign Up'}
-          </CrazyButton>
-
-          {Platform.OS === 'web' && (
-            <CrazyButton
-              onPress={handleGoogleAuth}
-              variant="outline"
-              disabled={loading}
-              style={styles.primaryBtn}
-            >
-              Continue with Google
-            </CrazyButton>
-          )}
-
-          <Pressable
-            onPress={() => {
-              setError(null);
-              setInfo(null);
-              setMode((m) => (m === 'signIn' ? 'signUp' : 'signIn'));
-            }}
-          >
-            <Text style={styles.switchModeText}>
-              {mode === 'signIn'
-                ? "Don't have an account? Sign up"
-                : 'Already have an account? Sign in'}
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + 24, paddingBottom: 28 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.logoBlock}>
+            <Snappy size={104} mood="ready" />
+            <Text style={styles.wordmark}>CALSNAP</Text>
+            <View style={styles.tagline}>
+              <Text style={styles.taglineText}>POINT · SHOOT · EAT</Text>
+            </View>
+            <Text style={styles.pitch}>
+              No typing. No hunting a database for &ldquo;dal, homemade&rdquo;. Just
+              photograph the plate.
             </Text>
-          </Pressable>
+          </View>
 
-          {mode === 'signIn' && (
-            <Pressable onPress={() => router.push('/forgot-password')}>
-              <Text style={styles.forgotText}>Forgot password?</Text>
+          <View style={styles.form}>
+            <Sticker color={Colors.paper} radius={16} shadow={5} contentStyle={styles.inputRow}>
+              <Icon name="mail" size={20} color={Colors.textMuted} />
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@email.com"
+                placeholderTextColor={Colors.textMuted}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+              />
+            </Sticker>
+
+            <Sticker color={Colors.paper} radius={16} shadow={5} contentStyle={styles.inputRow}>
+              <Icon name="lock" size={20} color={Colors.textMuted} />
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="password"
+                placeholderTextColor={Colors.textMuted}
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete={mode === 'signUp' ? 'new-password' : 'current-password'}
+              />
+            </Sticker>
+
+            {!!error && (
+              <Sticker color={Colors.accentHot} radius={14} shadow={4} contentStyle={styles.banner}>
+                <Icon name="warning" size={18} color={Colors.ink} strokeWidth={2.8} />
+                <Text style={styles.bannerText}>{error}</Text>
+              </Sticker>
+            )}
+
+            {!!info && (
+              <Sticker color={Colors.accentLime} radius={14} shadow={4} contentStyle={styles.banner}>
+                <Icon name="info" size={18} color={Colors.ink} strokeWidth={2.8} />
+                <Text style={styles.bannerText}>{info}</Text>
+              </Sticker>
+            )}
+
+            <StickerPressable
+              color={Colors.accentPrimary}
+              radius={18}
+              shadow={6}
+              border={4}
+              sound="chime"
+              disabled={loading}
+              onPress={handleEmailAuth}
+              contentStyle={styles.cta}
+            >
+              {loading ? (
+                <ActivityIndicator color={Colors.ink} />
+              ) : (
+                <>
+                  <Text style={styles.ctaText}>
+                    {mode === 'signIn' ? 'LET ME IN' : 'SIGN ME UP'}
+                  </Text>
+                  <Icon name="forward" size={22} color={Colors.ink} strokeWidth={3} />
+                </>
+              )}
+            </StickerPressable>
+
+            <View style={styles.orRow}>
+              <View style={styles.rule} />
+              <Text style={styles.orText}>OR</Text>
+              <View style={styles.rule} />
+            </View>
+
+            <StickerPressable
+              color={Colors.paper}
+              radius={18}
+              shadow={5}
+              disabled={loading}
+              onPress={handleGoogleAuth}
+              contentStyle={styles.googleBtn}
+            >
+              <Icon name="star" size={20} color={Colors.ink} strokeWidth={2.4} />
+              <Text style={styles.googleText}>CONTINUE WITH GOOGLE</Text>
+            </StickerPressable>
+          </View>
+
+          <View style={styles.footer}>
+            <Pressable
+              onPress={() => {
+                setMode(mode === 'signIn' ? 'signUp' : 'signIn');
+                setError(null);
+                setInfo(null);
+              }}
+            >
+              <Text style={styles.link}>
+                {mode === 'signIn'
+                  ? "New here? Make an account"
+                  : 'Already have an account? Sign in'}
+              </Text>
             </Pressable>
-          )}
-        </Appear>
+
+            {mode === 'signIn' && (
+              <Pressable onPress={() => router.push('/forgot-password')}>
+                <Text style={styles.linkQuiet}>Forgot password?</Text>
+              </Pressable>
+            )}
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
+
+      <Marquee
+        text="20 FREE SCANS A DAY ★ NO CARD"
+        color={Colors.accentLime}
+        duration={13}
+        height={34}
+        style={{ marginBottom: insets.bottom }}
+      />
     </View>
   );
 }
@@ -170,58 +242,131 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.primaryBg,
   },
-  content: {
+  flex: {
     flex: 1,
+  },
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'center',
+    paddingHorizontal: 22,
+    gap: 22,
+  },
+  logoBlock: {
     alignItems: 'center',
-    padding: Spacing.xl,
+    gap: 8,
   },
-  title: {
-    fontSize: FontSizes.display,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
+  wordmark: {
+    fontFamily: Fonts.display,
+    fontSize: 46,
+    lineHeight: 52,
+    color: Colors.paper,
   },
-  subtitle: {
-    fontSize: FontSizes.md,
-    color: Colors.textMuted,
-    marginBottom: Spacing.xl,
+  tagline: {
+    backgroundColor: Colors.primaryBg,
+    borderRadius: 999,
+    borderWidth: 3,
+    borderColor: Colors.accentLime,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+  },
+  taglineText: {
+    fontFamily: Fonts.display,
+    fontSize: 11,
+    color: Colors.accentLime,
+  },
+  pitch: {
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 280,
+  },
+  form: {
+    gap: 12,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
   },
   input: {
-    width: '100%',
-    maxWidth: 320,
-    fontSize: FontSizes.lg,
-    color: Colors.textPrimary,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.accentPrimary,
-    paddingVertical: Spacing.sm,
-    marginBottom: Spacing.md,
+    flex: 1,
+    minWidth: 0,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 15,
+    color: Colors.ink,
+    paddingVertical: 12,
+    minHeight: 46,
   },
-  errorText: {
-    color: Colors.danger,
-    fontSize: FontSizes.sm,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
   },
-  infoText: {
-    color: Colors.success,
-    fontSize: FontSizes.sm,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
+  bannerText: {
+    flex: 1,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.ink,
   },
-  primaryBtn: {
-    width: '100%',
-    maxWidth: 320,
-    marginTop: Spacing.sm,
+  cta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+    minHeight: 58,
   },
-  switchModeText: {
-    marginTop: Spacing.xl,
-    fontSize: FontSizes.sm,
-    color: Colors.accentSecondary,
+  ctaText: {
+    fontFamily: Fonts.display,
+    fontSize: 18,
+    color: Colors.ink,
   },
-  forgotText: {
-    marginTop: Spacing.md,
-    fontSize: FontSizes.sm,
+  orRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  rule: {
+    flex: 1,
+    height: 3,
+    backgroundColor: Colors.hairline,
+    borderRadius: 999,
+  },
+  orText: {
+    fontFamily: Fonts.display,
+    fontSize: 10,
+    color: Colors.textMuted,
+  },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    minHeight: 54,
+  },
+  googleText: {
+    fontFamily: Fonts.display,
+    fontSize: 13,
+    color: Colors.ink,
+  },
+  footer: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  link: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
+    color: Colors.accentGold,
+  },
+  linkQuiet: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
     color: Colors.textMuted,
   },
 });

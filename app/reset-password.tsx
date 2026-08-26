@@ -1,17 +1,24 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { Appear } from '@/components/Appear';
-import CrazyButton from '@/components/CrazyButton';
-import ParticleBackground from '@/components/ParticleBackground';
-import { Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import ArcadeBg from '@/components/ui/ArcadeBg';
+import Icon from '@/components/ui/Icon';
+import Snappy from '@/components/ui/Snappy';
+import Sticker from '@/components/ui/Sticker';
+import StickerPressable from '@/components/ui/StickerPressable';
+import { Colors, Fonts } from '@/constants/theme';
+import { sfx } from '@/lib/sfx';
 import { supabase } from '@/lib/supabase';
 import { useRecoveryContext } from './_layout';
 
@@ -22,6 +29,7 @@ import { useRecoveryContext } from './_layout';
 // routes here instead of the dashboard for that event.
 export default function ResetPasswordScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { clearRecovery } = useRecoveryContext();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,6 +52,7 @@ export default function ResetPasswordScreen() {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
       setDone(true);
+      sfx('fanfare');
       setTimeout(() => {
         clearRecovery();
         router.replace('/(tabs)');
@@ -57,52 +66,82 @@ export default function ResetPasswordScreen() {
 
   return (
     <View style={styles.container}>
-      <ParticleBackground />
+      <ArcadeBg glows={[Colors.accentPrimary, Colors.accentLime]} />
+
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Appear from="none" style={styles.content}>
-          <Text style={styles.title}>Set New Password</Text>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Snappy size={92} mood={done ? 'streak' : 'ready'} />
+
+          <Text style={styles.title}>SET A NEW{'\n'}PASSWORD</Text>
 
           {done ? (
-            <Text style={styles.subtitle}>Password updated. Taking you in...</Text>
+            <Text style={styles.sub}>Password updated. Taking you in…</Text>
           ) : (
-            <>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="New password"
-                placeholderTextColor={Colors.textMuted}
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="new-password"
-              />
-              <TextInput
-                style={styles.input}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
-                placeholderTextColor={Colors.textMuted}
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="new-password"
-              />
+            <View style={styles.form}>
+              <Sticker color={Colors.paper} radius={16} shadow={5} contentStyle={styles.inputRow}>
+                <Icon name="lock" size={20} color={Colors.textMuted} />
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="new password"
+                  placeholderTextColor={Colors.textMuted}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoComplete="new-password"
+                />
+              </Sticker>
 
-              {error && <Text style={styles.errorText}>{error}</Text>}
+              <Sticker color={Colors.paper} radius={16} shadow={5} contentStyle={styles.inputRow}>
+                <Icon name="lock" size={20} color={Colors.textMuted} />
+                <TextInput
+                  style={styles.input}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="confirm password"
+                  placeholderTextColor={Colors.textMuted}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoComplete="new-password"
+                />
+              </Sticker>
 
-              <CrazyButton
+              {!!error && (
+                <Sticker color={Colors.accentHot} radius={14} shadow={4} contentStyle={styles.banner}>
+                  <Icon name="warning" size={18} color={Colors.ink} strokeWidth={2.8} />
+                  <Text style={styles.bannerText}>{error}</Text>
+                </Sticker>
+              )}
+
+              <StickerPressable
+                color={Colors.accentLime}
+                radius={18}
+                shadow={6}
+                border={4}
+                sound={null}
+                disabled={loading}
                 onPress={handleReset}
-                gradient={Gradients.purpleToBlue}
-                loading={loading}
-                style={styles.primaryBtn}
+                contentStyle={styles.cta}
               >
-                Update Password
-              </CrazyButton>
-            </>
+                {loading ? (
+                  <ActivityIndicator color={Colors.ink} />
+                ) : (
+                  <Text style={styles.ctaText}>UPDATE PASSWORD</Text>
+                )}
+              </StickerPressable>
+            </View>
           )}
-        </Appear>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -113,42 +152,74 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.primaryBg,
   },
-  content: {
+  flex: {
     flex: 1,
+  },
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.xl,
+    paddingHorizontal: 24,
+    gap: 14,
   },
   title: {
-    fontSize: FontSizes.xxl,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xl,
-  },
-  subtitle: {
-    fontSize: FontSizes.md,
-    color: Colors.textMuted,
+    fontFamily: Fonts.display,
+    fontSize: 28,
+    lineHeight: 34,
+    color: Colors.paper,
     textAlign: 'center',
+  },
+  sub: {
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 290,
+  },
+  form: {
+    width: '100%',
+    gap: 12,
+    marginTop: 4,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
   },
   input: {
-    width: '100%',
-    maxWidth: 320,
-    fontSize: FontSizes.lg,
-    color: Colors.textPrimary,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.accentPrimary,
-    paddingVertical: Spacing.sm,
-    marginBottom: Spacing.md,
+    flex: 1,
+    minWidth: 0,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 15,
+    color: Colors.ink,
+    paddingVertical: 12,
+    minHeight: 46,
   },
-  errorText: {
-    color: Colors.danger,
-    fontSize: FontSizes.sm,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
   },
-  primaryBtn: {
-    width: '100%',
-    maxWidth: 320,
-    marginTop: Spacing.sm,
+  bannerText: {
+    flex: 1,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.ink,
+  },
+  cta: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 58,
+  },
+  ctaText: {
+    fontFamily: Fonts.display,
+    fontSize: 16,
+    color: Colors.ink,
   },
 });

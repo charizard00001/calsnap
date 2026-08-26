@@ -1,21 +1,26 @@
-import { BorderRadius, Colors, FontSizes, MealTypeLabels, Spacing } from '@/constants/theme';
+import Chip from '@/components/ui/Chip';
+import Icon from '@/components/ui/Icon';
+import Sticker from '@/components/ui/Sticker';
+import StickerPressable from '@/components/ui/StickerPressable';
+import { Colors, Fonts, MealTypeColor, MealTypeLabels } from '@/constants/theme';
 import { useAddMeal, useUpdateMeal } from '@/hooks/useDailyLog';
 import { notify } from '@/lib/confirm';
+import { sfx } from '@/lib/sfx';
 import type { MealEntry } from '@/types';
 import { formatDisplayDate, getTodayKey, parseDateKey } from '@/utils/dateHelpers';
 import * as Crypto from 'expo-crypto';
-import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
 import {
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface MealDetailModalProps {
   meal: MealEntry | null;
@@ -24,6 +29,7 @@ interface MealDetailModalProps {
 }
 
 export default function MealDetailModal({ meal, date, onClose }: MealDetailModalProps) {
+  const insets = useSafeAreaInsets();
   const updateMealMutation = useUpdateMeal();
   const addMealMutation = useAddMeal();
 
@@ -46,10 +52,11 @@ export default function MealDetailModal({ meal, date, onClose }: MealDetailModal
 
   if (!meal) return null;
 
-  const mealInfo = MealTypeLabels[meal.mealType] || { label: 'Meal' };
+  const mealInfo = MealTypeLabels[meal.mealType] || { label: 'Meal', rank: '' };
+  const typeColor = MealTypeColor[meal.mealType] ?? Colors.accentGold;
 
   const handleSave = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    sfx('chime');
     await updateMealMutation.mutateAsync({
       date,
       mealId: meal.id,
@@ -65,7 +72,7 @@ export default function MealDetailModal({ meal, date, onClose }: MealDetailModal
   };
 
   const handleRelog = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    sfx('fanfare');
     const relogged: MealEntry = {
       ...meal,
       id: Crypto.randomUUID(),
@@ -79,52 +86,80 @@ export default function MealDetailModal({ meal, date, onClose }: MealDetailModal
   return (
     <Modal visible={!!meal} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <View style={styles.sheet}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <View style={styles.header}>
-              <Text style={styles.title}>Meal Details</Text>
-              <Pressable onPress={onClose} style={styles.closeBtn}>
-                <Text style={styles.closeText}>✕</Text>
-              </Pressable>
+              <Text style={styles.title}>MEAL DETAILS</Text>
+              <StickerPressable
+                color={Colors.paper}
+                radius={999}
+                shadow={0}
+                onPress={onClose}
+                contentStyle={styles.closeBtn}
+                accessibilityLabel="Close"
+              >
+                <Icon name="close" size={20} color={Colors.ink} strokeWidth={3} />
+              </StickerPressable>
             </View>
 
             {meal.photoUri ? (
-              <Pressable onPress={() => setPhotoOpen(true)}>
+              <Pressable onPress={() => setPhotoOpen(true)} style={styles.photoWrap}>
                 <Image source={{ uri: meal.photoUri }} style={styles.photo} />
               </Pressable>
             ) : null}
 
-            <Text style={styles.mealMeta}>
-              {mealInfo.label} · {formatDisplayDate(parseDateKey(date))}
-            </Text>
-
-            <Text style={styles.label}>Food name</Text>
-            <TextInput
-              style={styles.textInput}
-              value={foodName}
-              onChangeText={setFoodName}
-            />
-
-            <View style={styles.statsGrid}>
-              <NumberField label="Calories (kcal)" value={calories} onChangeText={setCalories} />
-              <NumberField label="Protein (g)" value={protein} onChangeText={setProtein} />
-              <NumberField label="Carbs (g)" value={carbs} onChangeText={setCarbs} />
-              <NumberField label="Fat (g)" value={fat} onChangeText={setFat} />
+            <View style={styles.metaRow}>
+              <Chip label={(mealInfo.rank || mealInfo.label).toUpperCase()} color={typeColor} />
+              <Text style={styles.metaText}>
+                {formatDisplayDate(parseDateKey(date || getTodayKey()))}
+              </Text>
             </View>
 
-            <Pressable style={styles.saveBtn} onPress={handleSave}>
-              <Text style={styles.saveBtnText}>Save Changes</Text>
-            </Pressable>
+            <Text style={styles.label}>FOOD NAME</Text>
+            <TextInput style={styles.textInput} value={foodName} onChangeText={setFoodName} />
 
-            <Pressable style={styles.relogBtn} onPress={handleRelog}>
-              <Text style={styles.relogBtnText}>🔁 Re-log to Today</Text>
-            </Pressable>
+            <View style={styles.grid}>
+              <NumberField label="CALORIES" value={calories} onChangeText={setCalories} />
+              <NumberField label="PROTEIN (G)" value={protein} onChangeText={setProtein} />
+              <NumberField label="CARBS (G)" value={carbs} onChangeText={setCarbs} />
+              <NumberField label="FAT (G)" value={fat} onChangeText={setFat} />
+            </View>
+
+            <StickerPressable
+              color={Colors.accentPrimary}
+              radius={18}
+              shadow={5}
+              border={3}
+              sound={null}
+              onPress={handleSave}
+              contentStyle={styles.saveBtn}
+            >
+              <Icon name="check" size={20} color={Colors.ink} strokeWidth={3} />
+              <Text style={styles.saveText}>SAVE CHANGES</Text>
+            </StickerPressable>
+
+            <StickerPressable
+              color={Colors.cardBg}
+              borderColor={Colors.accentSecondary}
+              radius={18}
+              shadow={0}
+              sound={null}
+              onPress={handleRelog}
+              contentStyle={styles.relogBtn}
+            >
+              <Icon name="repeat" size={19} color={Colors.accentSecondary} />
+              <Text style={styles.relogText}>RE-LOG TO TODAY</Text>
+            </StickerPressable>
           </ScrollView>
         </View>
       </View>
 
-      {/* Full-size photo viewer */}
-      <Modal visible={photoOpen} animationType="fade" transparent onRequestClose={() => setPhotoOpen(false)}>
+      <Modal
+        visible={photoOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setPhotoOpen(false)}
+      >
         <Pressable style={styles.photoBackdrop} onPress={() => setPhotoOpen(false)}>
           {meal.photoUri ? (
             <Image source={{ uri: meal.photoUri }} style={styles.fullPhoto} resizeMode="contain" />
@@ -166,95 +201,107 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: Colors.cardBg,
-    borderTopLeftRadius: BorderRadius.lg,
-    borderTopRightRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    maxHeight: '85%',
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+    borderRightWidth: 4,
+    borderColor: Colors.ink,
+    padding: 16,
+    maxHeight: '86%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 14,
   },
   title: {
-    fontSize: FontSizes.xl,
-    fontWeight: '800',
-    color: Colors.textPrimary,
+    fontFamily: Fonts.display,
+    fontSize: 19,
+    color: Colors.paper,
   },
   closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.primaryBg,
+    width: 38,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeText: {
-    color: Colors.textPrimary,
-    fontSize: 16,
+  photoWrap: {
+    marginBottom: 12,
   },
   photo: {
     width: '100%',
-    height: 220,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.sm,
+    height: 210,
+    borderRadius: 18,
+    borderWidth: 3,
+    borderColor: Colors.ink,
   },
-  mealMeta: {
-    fontSize: FontSizes.sm,
-    color: Colors.textMuted,
-    marginBottom: Spacing.md,
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  metaText: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 11,
+    color: Colors.textSecondary,
   },
   label: {
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    marginBottom: 4,
+    fontFamily: Fonts.display,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    color: Colors.accentLime,
+    marginBottom: 5,
   },
   textInput: {
     backgroundColor: Colors.primaryBg,
-    borderRadius: BorderRadius.sm,
-    padding: Spacing.sm,
-    color: Colors.textPrimary,
-    fontSize: FontSizes.md,
-    borderWidth: 1,
-    borderColor: Colors.accentPrimary + '20',
-    marginBottom: Spacing.md,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: Colors.hairline,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 46,
+    fontFamily: Fonts.display,
+    fontSize: 15,
+    color: Colors.paper,
+    marginBottom: 12,
   },
-  statsGrid: {
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.sm,
+    gap: 10,
   },
   numberField: {
     width: '47%',
+    flexGrow: 1,
   },
   saveBtn: {
-    backgroundColor: Colors.accentPrimary,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Spacing.sm,
+    justifyContent: 'center',
+    gap: 9,
+    paddingVertical: 15,
+    marginTop: 4,
   },
-  saveBtnText: {
-    color: Colors.textPrimary,
-    fontWeight: '700',
-    fontSize: FontSizes.md,
+  saveText: {
+    fontFamily: Fonts.display,
+    fontSize: 14,
+    color: Colors.ink,
   },
   relogBtn: {
-    backgroundColor: Colors.primaryBg,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.accentSecondary + '40',
+    justifyContent: 'center',
+    gap: 9,
+    paddingVertical: 14,
+    marginTop: 12,
   },
-  relogBtnText: {
+  relogText: {
+    fontFamily: Fonts.display,
+    fontSize: 13,
     color: Colors.accentSecondary,
-    fontWeight: '700',
-    fontSize: FontSizes.md,
   },
   photoBackdrop: {
     flex: 1,

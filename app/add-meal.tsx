@@ -1,35 +1,45 @@
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import CrazyButton from '@/components/CrazyButton';
 import NutritionResultCard from '@/components/NutritionResultCard';
-import ParticleBackground from '@/components/ParticleBackground';
-import { BorderRadius, Colors, FontSizes, Gradients, MealTypeLabels, Spacing } from '@/constants/theme';
+import ArcadeBg from '@/components/ui/ArcadeBg';
+import Confetti from '@/components/ui/Confetti';
+import Icon from '@/components/ui/Icon';
+import Marquee from '@/components/ui/Marquee';
+import Sticker from '@/components/ui/Sticker';
+import StickerPressable from '@/components/ui/StickerPressable';
+import {
+  Colors,
+  Fonts,
+  MealTypeColor,
+  MealTypeShort,
+} from '@/constants/theme';
 import { useAddMeal } from '@/hooks/useDailyLog';
 import { notify } from '@/lib/confirm';
+import { sfx } from '@/lib/sfx';
 import { analyzeFoodImage } from '@/services/geminiService';
 import type { MealEntry, MealType, NutritionResult } from '@/types';
 import { getTodayKey } from '@/utils/dateHelpers';
 
 export default function AddMealScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const addMealMutation = useAddMeal();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -38,6 +48,7 @@ export default function AddMealScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<NutritionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [burst, setBurst] = useState(0);
 
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -72,15 +83,17 @@ export default function AddMealScreen() {
     if (!imageUri) return;
     setIsAnalyzing(true);
     setError(null);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
 
     try {
       const nutritionResult = await analyzeFoodImage(imageUri, userNote);
       setResult(nutritionResult);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      sfx('chime');
     } catch (err: any) {
       setError(err.message || 'Analysis failed. Check your connection and try again.');
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      sfx('error');
     } finally {
       setIsAnalyzing(false);
     }
@@ -88,7 +101,8 @@ export default function AddMealScreen() {
 
   const saveMeal = async () => {
     if (!result || !imageUri) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setBurst((n) => n + 1);
+    sfx('fanfare');
 
     const meal: MealEntry = {
       id: Crypto.randomUUID(),
@@ -113,72 +127,121 @@ export default function AddMealScreen() {
 
   return (
     <View style={styles.container}>
-      <ParticleBackground />
+      <ArcadeBg glows={[Colors.accentViolet, Colors.accentLime]} />
+
+      <View style={{ height: insets.top }} />
+
+      <View style={styles.header}>
+        <StickerPressable
+          color={Colors.paper}
+          radius={14}
+          shadow={4}
+          onPress={() => router.back()}
+          contentStyle={styles.iconBtn}
+          accessibilityLabel="Close"
+        >
+          <Icon name="close" size={22} color={Colors.ink} strokeWidth={3} />
+        </StickerPressable>
+        <Text style={styles.title}>FEED THE AI</Text>
+        <View style={styles.iconBtnSpacer} />
+      </View>
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <Pressable onPress={() => router.back()} style={styles.backBtn}>
-              <Text style={styles.backText}>✕</Text>
-            </Pressable>
-            <Text style={styles.title}>Log a Meal</Text>
-            <View style={{ width: 40 }} />
-          </View>
-
-          {/* Image picker buttons or preview */}
           {!imageUri ? (
-            <Animated.View entering={FadeIn.duration(400)} style={styles.pickSection}>
-              <Text style={styles.pickLabel}>Snap or upload a photo</Text>
-              <View style={styles.pickButtons}>
-                <Pressable onPress={takePhoto} style={styles.pickButton}>
-                  <LinearGradient
-                    colors={Gradients.purpleToBlue}
-                    style={styles.pickButtonGradient}
-                  >
-                    <Text style={styles.pickEmoji}>📷</Text>
-                    <Text style={styles.pickButtonText}>Take Photo</Text>
-                  </LinearGradient>
-                </Pressable>
-                <Pressable onPress={pickFromGallery} style={styles.pickButton}>
-                  <LinearGradient
-                    colors={Gradients.darkCard}
-                    style={[styles.pickButtonGradient, styles.galleryButton]}
-                  >
-                    <Text style={styles.pickEmoji}>🖼️</Text>
-                    <Text style={styles.pickButtonText}>Gallery</Text>
-                  </LinearGradient>
-                </Pressable>
+            <View style={styles.pickSection}>
+              <Sticker
+                color={Colors.accentWarm}
+                radius={24}
+                shadow={6}
+                border={4}
+                contentStyle={styles.emptyFrame}
+              >
+                <Icon name="camera" size={54} color={Colors.ink} strokeWidth={1.8} />
+                <Text style={styles.emptyFrameText}>SNAP OR UPLOAD A PLATE</Text>
+              </Sticker>
+
+              <View style={styles.pickRow}>
+                <StickerPressable
+                  color={Colors.accentSecondary}
+                  radius={18}
+                  shadow={5}
+                  onPress={takePhoto}
+                  style={styles.flex}
+                  contentStyle={styles.pickBtn}
+                >
+                  <Icon name="camera" size={26} color={Colors.ink} />
+                  <Text style={styles.pickBtnText}>CAMERA</Text>
+                </StickerPressable>
+                <StickerPressable
+                  color={Colors.paper}
+                  radius={18}
+                  shadow={5}
+                  onPress={pickFromGallery}
+                  style={styles.flex}
+                  contentStyle={styles.pickBtn}
+                >
+                  <Icon name="image" size={26} color={Colors.ink} />
+                  <Text style={styles.pickBtnText}>GALLERY</Text>
+                </StickerPressable>
               </View>
-            </Animated.View>
+            </View>
           ) : (
-            <Animated.View entering={FadeIn.duration(400)}>
-              {/* Photo preview */}
-              <View style={styles.photoFrame}>
-                <Image source={{ uri: imageUri }} style={styles.photoImage} />
+            <View style={styles.body}>
+              <View style={styles.photoWrap}>
+                <View style={styles.photoShadow} />
+                <Image source={{ uri: imageUri }} style={styles.photo} />
                 <Pressable
-                  style={styles.changePhotoBtn}
+                  style={styles.changeBtn}
                   onPress={() => {
+                    sfx('tap');
                     setImageUri(null);
                     setResult(null);
                   }}
                 >
-                  <Text style={styles.changePhotoText}>Change</Text>
+                  <Text style={styles.changeText}>CHANGE</Text>
                 </Pressable>
               </View>
 
-              {/* Note input */}
-              <View style={styles.noteContainer}>
-                <Text style={styles.noteLabel}>Notes (optional)</Text>
+              <View style={styles.block}>
+                <Text style={styles.blockLabel}>WHEN WAS THIS?</Text>
+                <View style={styles.typeRow}>
+                  {mealTypes.map((type) => {
+                    const isSelected = mealType === type;
+                    const color = MealTypeColor[type];
+                    return (
+                      <StickerPressable
+                        key={type}
+                        color={isSelected ? color : Colors.hairline}
+                        radius={14}
+                        shadow={isSelected ? 4 : 0}
+                        onPress={() => setMealType(type)}
+                        style={styles.flex}
+                        contentStyle={styles.typeBtn}
+                      >
+                        <Text
+                          style={[styles.typeText, !isSelected && styles.typeTextIdle]}
+                        >
+                          {MealTypeShort[type]}
+                        </Text>
+                      </StickerPressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.block}>
+                <Text style={styles.blockLabel}>TELL SNAPPY MORE</Text>
                 <TextInput
                   style={styles.noteInput}
-                  placeholder="e.g. 2 rotis, large bowl, approx 300g"
+                  placeholder="2 rotis, big bowl of dal, approx 300g…"
                   placeholderTextColor={Colors.textMuted}
                   value={userNote}
                   onChangeText={setUserNote}
@@ -186,101 +249,97 @@ export default function AddMealScreen() {
                 />
               </View>
 
-              {/* Meal type selector */}
-              <View style={styles.mealTypeContainer}>
-                <Text style={styles.noteLabel}>Meal Type</Text>
-                <View style={styles.mealTypeRow}>
-                  {mealTypes.map((type) => {
-                    const info = MealTypeLabels[type];
-                    const isSelected = mealType === type;
-                    return (
-                      <Pressable
-                        key={type}
-                        onPress={() => {
-                          setMealType(type);
-                          Haptics.selectionAsync();
-                        }}
-                        style={[
-                          styles.mealTypeCard,
-                          isSelected && styles.mealTypeCardSelected,
-                        ]}
-                      >
-                        <Text style={styles.mealTypeEmoji}>
-                          {type === 'breakfast'
-                            ? '🌅'
-                            : type === 'lunch'
-                            ? '☀️'
-                            : type === 'dinner'
-                            ? '🌙'
-                            : '⚡'}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.mealTypeName,
-                            isSelected && styles.mealTypeNameSelected,
-                          ]}
-                        >
-                          {info.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Analyze button */}
               {!result && !isAnalyzing && (
-                <CrazyButton
+                <StickerPressable
+                  color={Colors.accentLime}
+                  radius={20}
+                  shadow={6}
+                  border={4}
+                  sound="boing"
                   onPress={analyzeFood}
-                  gradient={Gradients.purpleToRed}
-                  style={styles.analyzeBtn}
+                  contentStyle={styles.cta}
                 >
-                  Analyze Meal
-                </CrazyButton>
+                  <Icon name="star" size={24} color={Colors.ink} strokeWidth={2.8} />
+                  <Text style={styles.ctaText}>ANALYZE IT</Text>
+                </StickerPressable>
               )}
 
-              {/* Loading state */}
               {isAnalyzing && (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={Colors.accentPrimary} />
-                  <Text style={styles.loadingText}>Analyzing...</Text>
-                  <Text style={styles.loadingSubtext}>Figuring out what's on your plate</Text>
+                <Sticker
+                  color={Colors.accentViolet}
+                  radius={22}
+                  shadow={6}
+                  border={4}
+                  contentStyle={styles.loadingCard}
+                >
+                  <ActivityIndicator size="large" color={Colors.ink} />
+                  <View style={styles.loadingCopy}>
+                    <Text style={styles.loadingTitle}>CHEWING ON IT…</Text>
+                    <Text style={styles.loadingSub}>Squinting at your plate</Text>
+                  </View>
+                </Sticker>
+              )}
+
+              {error && (
+                <View>
+                  <Sticker
+                    color={Colors.accentHot}
+                    radius={20}
+                    shadow={5}
+                    contentStyle={styles.errorCard}
+                  >
+                    <View style={styles.errorHead}>
+                      <Icon name="warning" size={22} color={Colors.ink} strokeWidth={2.8} />
+                      <Text style={styles.errorTitle}>THAT DIDN&apos;T WORK</Text>
+                    </View>
+                    <Text style={styles.errorBody}>{error}</Text>
+                    <StickerPressable
+                      color={Colors.ink}
+                      radius={14}
+                      shadow={0}
+                      onPress={analyzeFood}
+                      contentStyle={styles.retryBtn}
+                    >
+                      <Icon name="repeat" size={18} color={Colors.paper} />
+                      <Text style={styles.retryText}>TRY AGAIN</Text>
+                    </StickerPressable>
+                  </Sticker>
                 </View>
               )}
 
-              {/* Error */}
-              {error && (
-                <Animated.View entering={FadeIn} style={styles.errorContainer}>
-                  <Text style={styles.errorText}>⚠️ {error}</Text>
-                  <Pressable onPress={analyzeFood} style={styles.retryBtn}>
-                    <Text style={styles.retryText}>Retry Analysis</Text>
-                  </Pressable>
-                </Animated.View>
-              )}
-
-              {/* Results */}
               {result && (
-                <Animated.View entering={FadeInUp.duration(500)}>
-                  <NutritionResultCard
-                    result={result}
-                    onUpdate={setResult}
-                  />
+                <View style={styles.resultBlock}>
+                  <NutritionResultCard result={result} onUpdate={setResult} />
 
-                  {/* Save button */}
-                  <CrazyButton
-                    onPress={saveMeal}
-                    gradient={[Colors.success, Colors.success + 'AA']}
-                    textColor={Colors.primaryBg}
-                    style={styles.saveBtn}
-                  >
-                    Add to Today's Log
-                  </CrazyButton>
-                </Animated.View>
+                  <View style={styles.saveWrap}>
+                    <Confetti trigger={burst} count={18} spread={90} />
+                    <StickerPressable
+                      color={Colors.accentLime}
+                      radius={20}
+                      shadow={6}
+                      border={4}
+                      sound={null}
+                      onPress={saveMeal}
+                      contentStyle={styles.cta}
+                    >
+                      <Icon name="check" size={24} color={Colors.ink} strokeWidth={3} />
+                      <Text style={styles.ctaText}>ADD TO TODAY</Text>
+                    </StickerPressable>
+                  </View>
+                </View>
               )}
-            </Animated.View>
+            </View>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Marquee
+        text="NO TYPING ★ JUST PHOTOS"
+        color={Colors.accentGold}
+        duration={13}
+        height={32}
+        style={{ marginBottom: insets.bottom }}
+      />
     </View>
   );
 }
@@ -290,190 +349,213 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.primaryBg,
   },
-  scrollContent: {
-    padding: Spacing.md,
-    paddingTop: 60,
-    paddingBottom: 40,
+  flex: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.cardBg,
+  iconBtn: {
+    width: 46,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backText: {
-    fontSize: 18,
-    color: Colors.textPrimary,
+  iconBtnSpacer: {
+    width: 46,
   },
   title: {
-    fontSize: FontSizes.xl,
-    fontWeight: '800',
-    color: Colors.textPrimary,
+    fontFamily: Fonts.display,
+    fontSize: 20,
+    color: Colors.paper,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
   },
   pickSection: {
+    gap: 16,
+  },
+  emptyFrame: {
+    height: 250,
     alignItems: 'center',
-    marginTop: Spacing.xxl,
+    justifyContent: 'center',
+    gap: 12,
   },
-  pickLabel: {
-    fontSize: FontSizes.lg,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
-    fontStyle: 'italic',
+  emptyFrameText: {
+    fontFamily: Fonts.display,
+    fontSize: 13,
+    color: Colors.ink,
   },
-  pickButtons: {
+  pickRow: {
     flexDirection: 'row',
-    gap: Spacing.md,
+    gap: 11,
   },
-  pickButton: {
-    flex: 1,
-  },
-  pickButtonGradient: {
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
+  pickBtn: {
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 15,
   },
-  galleryButton: {
-    borderWidth: 1,
-    borderColor: Colors.accentPrimary + '40',
+  pickBtnText: {
+    fontFamily: Fonts.display,
+    fontSize: 12,
+    color: Colors.ink,
   },
-  pickEmoji: {
-    fontSize: 32,
-    marginBottom: Spacing.sm,
+  body: {
+    gap: 16,
   },
-  pickButtonText: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+  photoWrap: {
+    position: 'relative',
   },
-  photoFrame: {
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: Colors.accentPrimary + '40',
-    marginBottom: Spacing.md,
+  photoShadow: {
+    position: 'absolute',
+    left: 6,
+    top: 6,
+    right: -6,
+    bottom: -6,
+    backgroundColor: Colors.ink,
+    borderRadius: 24,
   },
-  photoImage: {
+  photo: {
     width: '100%',
     height: 250,
-    resizeMode: 'cover',
+    borderRadius: 24,
+    borderWidth: 4,
+    borderColor: Colors.ink,
+    backgroundColor: Colors.cardBg,
   },
-  changePhotoBtn: {
+  changeBtn: {
     position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-    backgroundColor: Colors.primaryBg + 'CC',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
+    right: 12,
+    bottom: 12,
+    backgroundColor: Colors.ink,
+    borderRadius: 999,
+    borderWidth: 3,
+    borderColor: Colors.paper,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minHeight: 34,
+    justifyContent: 'center',
   },
-  changePhotoText: {
-    fontSize: FontSizes.sm,
-    color: Colors.textPrimary,
+  changeText: {
+    fontFamily: Fonts.display,
+    fontSize: 10,
+    color: Colors.accentLime,
   },
-  noteContainer: {
-    marginBottom: Spacing.md,
+  block: {
+    gap: 8,
   },
-  noteLabel: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
+  blockLabel: {
+    fontFamily: Fonts.display,
+    fontSize: 12,
+    letterSpacing: 1,
+    color: Colors.accentLime,
+  },
+  typeRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  typeBtn: {
+    minHeight: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  typeText: {
+    fontFamily: Fonts.display,
+    fontSize: 9,
+    color: Colors.ink,
+  },
+  typeTextIdle: {
+    color: Colors.textSecondary,
   },
   noteInput: {
     backgroundColor: Colors.cardBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    color: Colors.textPrimary,
-    fontSize: FontSizes.md,
-    borderWidth: 1,
-    borderColor: Colors.accentPrimary + '20',
-    minHeight: 60,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: Colors.paper,
+    padding: 13,
+    minHeight: 76,
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    color: Colors.paper,
+    textAlignVertical: 'top',
   },
-  mealTypeContainer: {
-    marginBottom: Spacing.lg,
-  },
-  mealTypeRow: {
+  cta: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 17,
   },
-  mealTypeCard: {
+  ctaText: {
+    fontFamily: Fonts.display,
+    fontSize: 17,
+    color: Colors.ink,
+  },
+  loadingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 18,
+  },
+  loadingCopy: {
     flex: 1,
-    backgroundColor: Colors.cardBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
+    gap: 3,
+  },
+  loadingTitle: {
+    fontFamily: Fonts.display,
+    fontSize: 15,
+    color: Colors.ink,
+  },
+  loadingSub: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 11,
+    color: Colors.ink,
+    opacity: 0.75,
+  },
+  errorCard: {
+    padding: 15,
+    gap: 10,
+  },
+  errorHead: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'transparent',
+    gap: 8,
   },
-  mealTypeCardSelected: {
-    borderColor: Colors.accentPrimary,
-    backgroundColor: Colors.accentPrimary + '15',
+  errorTitle: {
+    fontFamily: Fonts.display,
+    fontSize: 13,
+    color: Colors.ink,
   },
-  mealTypeEmoji: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  mealTypeName: {
-    fontSize: FontSizes.xs,
-    fontWeight: '600',
-    color: Colors.textMuted,
-  },
-  mealTypeNameSelected: {
-    color: Colors.accentPrimary,
-  },
-  analyzeBtn: {
-    marginBottom: Spacing.md,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xxl,
-  },
-  loadingText: {
-    fontSize: FontSizes.xxl,
-    color: Colors.accentPrimary,
-    fontWeight: '700',
-    marginTop: Spacing.md,
-  },
-  loadingSubtext: {
-    fontSize: FontSizes.md,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  errorContainer: {
-    backgroundColor: Colors.accentHot + '15',
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.accentHot + '30',
-    marginBottom: Spacing.md,
-  },
-  errorText: {
-    fontSize: FontSizes.md,
-    color: Colors.accentHot,
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
+  errorBody: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.ink,
   },
   retryBtn: {
-    backgroundColor: Colors.cardBg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 46,
   },
   retryText: {
-    fontSize: FontSizes.md,
-    color: Colors.textPrimary,
-    fontWeight: '600',
+    fontFamily: Fonts.display,
+    fontSize: 12,
+    color: Colors.paper,
   },
-  saveBtn: {
-    marginTop: Spacing.md,
+  resultBlock: {
+    gap: 14,
+  },
+  saveWrap: {
+    position: 'relative',
   },
 });

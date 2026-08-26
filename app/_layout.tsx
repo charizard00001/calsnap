@@ -1,3 +1,8 @@
+import { Bungee_400Regular } from '@expo-google-fonts/bungee';
+import {
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_700Bold,
+} from '@expo-google-fonts/space-grotesk';
 import type { Session } from '@supabase/supabase-js';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -55,6 +60,9 @@ export const useRecoveryContext = () => useContext(RecoveryContext);
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Bungee_400Regular,
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_700Bold,
   });
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [session, setSession] = useState<Session | null | undefined>(undefined);

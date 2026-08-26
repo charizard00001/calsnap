@@ -1,0 +1,53 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "App Screens" },
+    { "id": "page-2", "name": "Design Kit" }
+  ],
+  "artboards": [
+    { "file": "Auth.dc.html", "x": 0, "y": 0, "w": 390, "h": 844, "page": "page-1", "title": "Sign in", "is_interactive": true },
+    { "file": "Onboarding.dc.html", "x": 480, "y": 0, "w": 390, "h": 844, "page": "page-1", "title": "Onboarding · step 2", "is_interactive": true },
+    { "file": "Main.dc.html", "x": 960, "y": 0, "w": 390, "h": 844, "page": "page-1", "title": "Today", "is_interactive": true },
+    { "file": "Snap.dc.html", "x": 1440, "y": 0, "w": 390, "h": 844, "page": "page-1", "title": "Snap a meal", "is_interactive": true },
+    { "file": "Verdict.dc.html", "x": 1920, "y": 0, "w": 390, "h": 844, "page": "page-1", "title": "AI verdict", "is_interactive": true },
+    { "file": "History.dc.html", "x": 0, "y": 984, "w": 390, "h": 844, "page": "page-1", "title": "History", "is_interactive": true },
+    { "file": "Insights.dc.html", "x": 480, "y": 984, "w": 390, "h": 844, "page": "page-1", "title": "Insights", "is_interactive": true },
+    { "file": "Profile.dc.html", "x": 960, "y": 984, "w": 390, "h": 844, "page": "page-1", "title": "Profile", "is_interactive": true },
+    { "file": "StreakMoment.dc.html", "x": 1440, "y": 984, "w": 390, "h": 844, "page": "page-1", "title": "Streak moment", "is_interactive": true },
+    { "file": "Kit.dc.html", "x": 0, "y": 0, "w": 1180, "h": 1020, "page": "page-2", "title": "Snack Arcade kit" }
+  ],
+  "annotations": [
+    {
+      "id": "direction",
+      "x": 0,
+      "y": -200,
+      "w": 800,
+      "page": "page-1",
+      "text": "SNACK ARCADE — sticker-punk maximalism\n\nEverything is a sticker: 3px ink outline, hard offset shadow, a degree or two of rotation. Press and the shadow collapses under it. Bungee for nouns and numbers, Space Grotesk for sentences.\n\nBuilt on CalSnap's real tokens (coral / teal / gold / cyan / amber / hot) plus two additions — lime and violet — matched in chroma."
+    },
+    {
+      "id": "sound-note",
+      "x": 960,
+      "y": -200,
+      "w": 420,
+      "page": "page-1",
+      "text": "Sound is real, not mocked. Tap the SNAP button, the macro steppers, the calendar days, the bar chart — every sound is synthesised live with WebAudio, no audio files. Toggle lives in Profile."
+    },
+    {
+      "id": "streak-note",
+      "x": 1440,
+      "y": 1870,
+      "w": 390,
+      "page": "page-1",
+      "text": "Tap anywhere on this one to replay the fanfare and confetti."
+    },
+    {
+      "id": "kit-note",
+      "x": 0,
+      "y": -150,
+      "w": 620,
+      "page": "page-2",
+      "text": "The rules that keep the chaos coherent. The status ramp was run through a colourblind-separation check — lime failed against gold, so 'under goal' is teal."
+    }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

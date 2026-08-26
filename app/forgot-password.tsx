@@ -1,22 +1,29 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { Appear } from '@/components/Appear';
-import CrazyButton from '@/components/CrazyButton';
-import ParticleBackground from '@/components/ParticleBackground';
-import { Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import ArcadeBg from '@/components/ui/ArcadeBg';
+import Icon from '@/components/ui/Icon';
+import Snappy from '@/components/ui/Snappy';
+import Sticker from '@/components/ui/Sticker';
+import StickerPressable from '@/components/ui/StickerPressable';
+import { Colors, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,49 +55,74 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={styles.container}>
-      <ParticleBackground />
+      <ArcadeBg glows={[Colors.accentViolet, Colors.accentSecondary]} />
+
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Appear from="none" style={styles.content}>
-          <Text style={styles.title}>Reset Password</Text>
-          <Text style={styles.subtitle}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Snappy size={92} mood={sent ? 'ready' : 'flat'} color={Colors.accentViolet} />
+
+          <Text style={styles.title}>LOCKED OUT?</Text>
+          <Text style={styles.sub}>
             {sent
-              ? "Check your email for a reset link."
-              : "We'll email you a link to reset your password."}
+              ? 'Check your email for the reset link. It expires in an hour.'
+              : "Tell us the email on your account and we'll send a reset link."}
           </Text>
 
           {!sent && (
-            <>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Email"
-                placeholderTextColor={Colors.textMuted}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-              />
+            <View style={styles.form}>
+              <Sticker color={Colors.paper} radius={16} shadow={5} contentStyle={styles.inputRow}>
+                <Icon name="mail" size={20} color={Colors.textMuted} />
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="you@email.com"
+                  placeholderTextColor={Colors.textMuted}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoComplete="email"
+                />
+              </Sticker>
 
-              {error && <Text style={styles.errorText}>{error}</Text>}
+              {!!error && (
+                <Sticker color={Colors.accentHot} radius={14} shadow={4} contentStyle={styles.banner}>
+                  <Icon name="warning" size={18} color={Colors.ink} strokeWidth={2.8} />
+                  <Text style={styles.bannerText}>{error}</Text>
+                </Sticker>
+              )}
 
-              <CrazyButton
+              <StickerPressable
+                color={Colors.accentPrimary}
+                radius={18}
+                shadow={6}
+                border={4}
+                disabled={loading}
                 onPress={handleSend}
-                gradient={Gradients.purpleToBlue}
-                loading={loading}
-                style={styles.primaryBtn}
+                contentStyle={styles.cta}
               >
-                Send Reset Link
-              </CrazyButton>
-            </>
+                {loading ? (
+                  <ActivityIndicator color={Colors.ink} />
+                ) : (
+                  <Text style={styles.ctaText}>SEND RESET LINK</Text>
+                )}
+              </StickerPressable>
+            </View>
           )}
 
-          <Pressable onPress={() => router.back()}>
-            <Text style={styles.backText}>Back to sign in</Text>
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <Text style={styles.link}>Back to sign in</Text>
           </Pressable>
-        </Appear>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -101,49 +133,84 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.primaryBg,
   },
-  content: {
+  flex: {
     flex: 1,
+  },
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.xl,
+    paddingHorizontal: 24,
+    gap: 14,
   },
   title: {
-    fontSize: FontSizes.xxl,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
-  },
-  subtitle: {
-    fontSize: FontSizes.md,
-    color: Colors.textMuted,
-    marginBottom: Spacing.xl,
+    fontFamily: Fonts.display,
+    fontSize: 30,
+    lineHeight: 34,
+    color: Colors.paper,
     textAlign: 'center',
-    maxWidth: 320,
+  },
+  sub: {
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 290,
+  },
+  form: {
+    width: '100%',
+    gap: 12,
+    marginTop: 4,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
   },
   input: {
-    width: '100%',
-    maxWidth: 320,
-    fontSize: FontSizes.lg,
-    color: Colors.textPrimary,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.accentPrimary,
-    paddingVertical: Spacing.sm,
-    marginBottom: Spacing.md,
+    flex: 1,
+    minWidth: 0,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 15,
+    color: Colors.ink,
+    paddingVertical: 12,
+    minHeight: 46,
   },
-  errorText: {
-    color: Colors.danger,
-    fontSize: FontSizes.sm,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
   },
-  primaryBtn: {
-    width: '100%',
-    maxWidth: 320,
-    marginTop: Spacing.sm,
+  bannerText: {
+    flex: 1,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.ink,
   },
-  backText: {
-    marginTop: Spacing.xl,
-    fontSize: FontSizes.sm,
+  cta: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 58,
+  },
+  ctaText: {
+    fontFamily: Fonts.display,
+    fontSize: 16,
+    color: Colors.ink,
+  },
+  backBtn: {
+    minHeight: 44,
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  link: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13,
     color: Colors.accentSecondary,
   },
 });

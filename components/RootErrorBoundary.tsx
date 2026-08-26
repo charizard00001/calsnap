@@ -2,7 +2,9 @@ import type { ErrorBoundaryProps } from 'expo-router';
 import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, FontSizes, Spacing } from '@/constants/theme';
+import Snappy from '@/components/ui/Snappy';
+import StickerPressable from '@/components/ui/StickerPressable';
+import { Colors, Fonts, FontSizes, Spacing } from '@/constants/theme';
 import { reportError } from '@/lib/errorReporter';
 
 // Replaces expo-router's default red-screen. Catches render/runtime errors
@@ -16,16 +18,24 @@ export function RootErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.emoji}>🌀</Text>
-        <Text style={styles.title}>Something broke</Text>
+        <Snappy size={104} mood="flat" color={Colors.accentHot} />
+        <Text style={styles.title}>SOMETHING BROKE</Text>
         <Text style={styles.body}>
           CalSnap hit an unexpected error. Your logged meals are safe on your
           account — reloading usually clears it.
         </Text>
 
-        <Pressable style={styles.button} onPress={() => retry()}>
-          <Text style={styles.buttonText}>Reload</Text>
-        </Pressable>
+        <StickerPressable
+          color={Colors.accentPrimary}
+          radius={18}
+          shadow={6}
+          border={4}
+          sound={null}
+          onPress={() => retry()}
+          contentStyle={styles.button}
+        >
+          <Text style={styles.buttonText}>RELOAD</Text>
+        </StickerPressable>
 
         {__DEV__ && (
           <Text style={styles.debug}>

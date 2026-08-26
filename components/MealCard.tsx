@@ -1,35 +1,47 @@
-import { BorderRadius, Colors, FontSizes, MealTypeLabels, Spacing } from '@/constants/theme';
+import Chip from '@/components/ui/Chip';
+import Icon from '@/components/ui/Icon';
+import {
+  Colors,
+  Fonts,
+  MealTypeColor,
+  MealTypeShort,
+  Sticker as S,
+} from '@/constants/theme';
+import { sfx } from '@/lib/sfx';
 import type { MealEntry } from '@/types';
 import { formatTime } from '@/utils/dateHelpers';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-    FadeIn,
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 
 interface MealCardProps {
   meal: MealEntry;
   onDelete?: (id: string) => void;
   onPress?: (meal: MealEntry) => void;
+  rotate?: number;
 }
 
-export default function MealCard({ meal, onDelete, onPress }: MealCardProps) {
+export default function MealCard({ meal, onDelete, onPress, rotate = 0 }: MealCardProps) {
   const translateX = useSharedValue(0);
   const deleteThreshold = -100;
 
   const handleDelete = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    }
+    sfx('down');
     onDelete?.(meal.id);
   };
 
   const handlePress = () => {
+    sfx('tap');
     onPress?.(meal);
   };
 
@@ -63,58 +75,63 @@ export default function MealCard({ meal, onDelete, onPress }: MealCardProps) {
     opacity: Math.min(Math.abs(translateX.value) / 100, 1),
   }));
 
-  const mealInfo = MealTypeLabels[meal.mealType] || { label: 'Meal', rank: 'Unknown' };
+  const typeColor = MealTypeColor[meal.mealType] ?? Colors.accentGold;
+  const typeLabel = MealTypeShort[meal.mealType] ?? 'MEAL';
 
+  // Deliberately no `entering` animation: Reanimated's web layout animations
+  // intermittently paint a stuck low-opacity first frame that never clears,
+  // and a half-invisible meal row reads as a broken card.
   return (
-    <Animated.View entering={FadeIn.duration(400)} style={styles.wrapper}>
-      {/* Delete background */}
+    <View style={styles.wrapper}>
       <Animated.View style={[styles.deleteBackground, deleteStyle]}>
-        <Text style={styles.deleteText}>🗑 Delete</Text>
+        <Icon name="trash" size={20} color={Colors.paper} />
+        <Text style={styles.deleteText}>DELETE</Text>
       </Animated.View>
 
       <GestureDetector gesture={composedGesture}>
-        <Animated.View style={cardStyle}>
-          <LinearGradient
-            colors={[Colors.cardBg, Colors.secondaryBg]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.card}
-          >
-            {/* Photo */}
+        <Animated.View
+          style={[
+            cardStyle,
+            rotate ? { transform: [{ rotate: `${rotate}deg` }] } : null,
+          ]}
+        >
+          <View style={styles.shadow} />
+          <View style={styles.card}>
             {meal.photoUri ? (
-              <View style={styles.photoContainer}>
-                <Image source={{ uri: meal.photoUri }} style={styles.photo} />
-              </View>
+              <Image source={{ uri: meal.photoUri }} style={styles.photo} />
             ) : (
-              <View style={[styles.photoContainer, styles.photoPlaceholder]}>
-                <Text style={styles.photoPlaceholderText}>🍽️</Text>
+              <View style={[styles.photo, styles.photoPlaceholder, { backgroundColor: typeColor }]}>
+                <Icon name="plate" size={28} color={Colors.ink} strokeWidth={2.4} />
               </View>
             )}
 
-            {/* Info */}
             <View style={styles.info}>
               <Text style={styles.foodName} numberOfLines={1}>
-                {meal.foodName}
+                {meal.foodName.toUpperCase()}
               </Text>
-              <Text style={styles.rank}>{mealInfo.rank}</Text>
 
-              <View style={styles.statsRow}>
-                <Text style={styles.stat}>⚡ {meal.calories} kcal</Text>
-                <Text style={styles.stat}>💪 {meal.protein}g</Text>
+              <View style={styles.chipRow}>
+                <Chip
+                  label={`${meal.calories} KCAL`}
+                  color={Colors.accentPrimary}
+                  size="sm"
+                />
+                <Chip label={`${meal.protein}P`} color={Colors.accentSecondary} size="sm" />
+                <Chip label={typeLabel} color={typeColor} size="sm" />
               </View>
 
               <Text style={styles.time}>{formatTime(meal.timestamp)}</Text>
             </View>
-          </LinearGradient>
+          </View>
         </Animated.View>
       </GestureDetector>
-    </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: Spacing.sm,
+    marginBottom: 13,
     position: 'relative',
   },
   deleteBackground: {
@@ -123,71 +140,67 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 120,
-    backgroundColor: Colors.accentHot + '30',
-    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.accentHot,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: Colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 4,
   },
   deleteText: {
-    color: Colors.accentHot,
-    fontWeight: '700',
-    fontSize: FontSizes.md,
+    fontFamily: Fonts.display,
+    fontSize: 10,
+    color: Colors.paper,
+  },
+  shadow: {
+    position: 'absolute',
+    left: S.shadow,
+    top: S.shadow,
+    right: -S.shadow,
+    bottom: -S.shadow,
+    backgroundColor: Colors.ink,
+    borderRadius: 20,
   },
   card: {
     flexDirection: 'row',
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.accentPrimary + '20',
-  },
-  photoContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: Colors.primaryBg,
+    alignItems: 'center',
+    gap: 11,
+    padding: 11,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: Colors.ink,
+    backgroundColor: Colors.paper,
   },
   photo: {
-    width: '100%',
-    height: '100%',
+    width: 62,
+    height: 62,
+    borderRadius: 14,
+    borderWidth: 3,
+    borderColor: Colors.ink,
   },
   photoPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  photoPlaceholderText: {
-    fontSize: 24,
-  },
   info: {
     flex: 1,
-    marginLeft: Spacing.sm,
-    justifyContent: 'center',
+    gap: 4,
   },
   foodName: {
-    fontSize: FontSizes.lg,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontFamily: Fonts.display,
+    fontSize: 14,
+    lineHeight: 17,
+    color: Colors.ink,
   },
-  rank: {
-    fontSize: FontSizes.xs,
-    color: Colors.accentPrimary,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginTop: 2,
-  },
-  statsRow: {
+  chipRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
-  stat: {
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    fontVariant: ['tabular-nums'],
+    gap: 5,
+    flexWrap: 'wrap',
   },
   time: {
-    fontSize: FontSizes.xs,
+    fontFamily: Fonts.bodyBold,
+    fontSize: 10,
     color: Colors.textMuted,
-    marginTop: 2,
   },
 });

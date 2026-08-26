@@ -1,117 +1,134 @@
-import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
-import { LinearGradient } from 'expo-linear-gradient';
+import Icon, { type IconName } from '@/components/ui/Icon';
+import Sticker from '@/components/ui/Sticker';
+import { Colors, Fonts } from '@/constants/theme';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 
 interface MacroCardProps {
-  label: string;        // STR, AGI, DEF
-  fullLabel: string;    // Strength, Agility, Defense
+  label: string;
+  fullLabel: string;
   value: number;
   goal: number;
   color: string;
-  gradient: readonly [string, string];
-  emoji: string;
+  icon: IconName;
   unit?: string;
+  /** Stagger for the bar fill, in ms. */
+  delay?: number;
+  rotate?: number;
 }
 
+/** One macro as a coloured sticker with an ink-tracked progress bar. */
 export default function MacroCard({
   label,
-  fullLabel,
   value,
   goal,
   color,
-  gradient,
-  emoji,
+  icon,
   unit = 'g',
+  delay = 0,
+  rotate = 0,
 }: MacroCardProps) {
-  const progress = Math.min(value / Math.max(goal, 1), 1);
+  const target = Math.min(value / Math.max(goal, 1), 1);
+  const fill = useSharedValue(0);
+
+  React.useEffect(() => {
+    fill.value = withDelay(
+      delay,
+      withTiming(target, { duration: 1000, easing: Easing.bezier(0.2, 0.9, 0.25, 1) })
+    );
+  }, [target, delay, fill]);
+
+  // Animating scaleX rather than a percentage width: Reanimated's web
+  // renderer doesn't reliably apply animated percentage widths, which left
+  // the bars empty. transformOrigin pins the growth to the left edge.
+  const fillStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleX: fill.value }],
+  }));
 
   return (
-    <View style={[styles.card, { borderColor: color + '40' }]}>
-      {/* Header row */}
+    <Sticker
+      color={color}
+      rotate={rotate}
+      radius={16}
+      shadow={4}
+      style={styles.wrap}
+      contentStyle={styles.card}
+    >
       <View style={styles.headerRow}>
-        <Text style={styles.emoji}>{emoji}</Text>
-        <Text style={[styles.label, { color }]}>{label}</Text>
+        <Icon name={icon} size={14} color={Colors.ink} strokeWidth={2.6} />
+        <Text style={styles.label} numberOfLines={1}>
+          {label.toUpperCase()}
+        </Text>
       </View>
 
-      {/* Value */}
       <Text style={styles.value}>
         {value}
         <Text style={styles.unit}>{unit}</Text>
       </Text>
-      <Text style={styles.fullLabel}>{fullLabel}</Text>
 
-      {/* Progress bar */}
       <View style={styles.barTrack}>
-        <LinearGradient
-          colors={[gradient[0], gradient[1]]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.barFill, { width: `${progress * 100}%` as any }]}
-        />
+        <Animated.View style={[styles.barFill, fillStyle]} />
       </View>
 
       <Text style={styles.goalText}>
-        / {goal}{unit}
+        of {goal}
+        {unit}
       </Text>
-    </View>
+    </Sticker>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  wrap: {
     flex: 1,
-    backgroundColor: Colors.cardBg,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    padding: Spacing.sm,
-    marginHorizontal: Spacing.xs,
+  },
+  card: {
+    padding: 9,
+    gap: 5,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 4,
-  },
-  emoji: {
-    fontSize: 14,
   },
   label: {
-    fontSize: FontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontFamily: Fonts.display,
+    fontSize: 9,
+    color: Colors.ink,
+    flexShrink: 1,
   },
   value: {
-    fontSize: FontSizes.xl,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    fontVariant: ['tabular-nums'],
+    fontFamily: Fonts.display,
+    fontSize: 22,
+    lineHeight: 24,
+    color: Colors.ink,
   },
   unit: {
-    fontSize: FontSizes.sm,
-    fontWeight: '400',
-    color: Colors.textSecondary,
-  },
-  fullLabel: {
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-    marginBottom: 6,
+    fontSize: 11,
   },
   barTrack: {
-    height: 6,
-    backgroundColor: Colors.primaryBg,
-    borderRadius: 3,
+    height: 9,
+    backgroundColor: Colors.ink,
+    borderRadius: 999,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 3,
+    width: '100%',
+    backgroundColor: Colors.paper,
+    transformOrigin: 'left center',
   },
   goalText: {
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-    marginTop: 4,
-    textAlign: 'right',
-    fontVariant: ['tabular-nums'],
+    fontFamily: Fonts.bodyBold,
+    fontSize: 9,
+    color: Colors.ink,
+    opacity: 0.7,
   },
 });

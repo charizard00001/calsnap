@@ -1,0 +1,293 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #FF4D7A; } a:hover { color: #FFD23F; }
+    * { box-sizing: border-box; }
+    @keyframes wob { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+    @keyframes wob2 { 0%,100% { transform: rotate(2.5deg) translateY(0); } 50% { transform: rotate(-2.5deg) translateY(-4px); } }
+    @keyframes march { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes ringfill { from { stroke-dashoffset: 616; } to { stroke-dashoffset: 168; } }
+    @keyframes barfill { from { width: 0%; } }
+    @keyframes blink { 0%,88%,100% { transform: scaleY(1); } 92% { transform: scaleY(0.08); } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+    @keyframes buzz { 0%,100% { transform: translate(0,0); } 25% { transform: translate(1px,-1px); } 75% { transform: translate(-1px,1px); } }
+    @keyframes pop-a { 0% { transform: translate(0,0) scale(0.4) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); opacity: 0; } }
+    @keyframes pop-b { 0% { transform: translate(0,0) scale(0.4) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); opacity: 0; } }
+    @keyframes stripe { from { background-position: 0 0; } to { background-position: 56px 0; } }
+    .tapz:active { transform: translate(3px,3px); box-shadow: 0 0 0 #0B0B10 !important; }
+    .scroller::-webkit-scrollbar { width: 0; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #0B0B10; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: 'Space Grotesk', system-ui, sans-serif;">
+
+  <div style="position: absolute; inset: 0; pointer-events: none; opacity: 0.35; background-image: radial-gradient(circle at 12% 8%, {{accent}}55, transparent 42%), radial-gradient(circle at 88% 22%, #12D8C555, transparent 40%), radial-gradient(circle at 50% 96%, #A86BFF44, transparent 45%);"></div>
+  <div style="position: absolute; inset: 0; pointer-events: none; opacity: 0.18; background-image: linear-gradient(#FFF6E9 1px, transparent 1px), linear-gradient(90deg, #FFF6E9 1px, transparent 1px); background-size: 26px 26px;"></div>
+
+  <div style="position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 16px 12px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="background: #FFD23F; border: 3px solid #0B0B10; border-radius: 999px; padding: 4px 10px; display: flex; align-items: center; gap: 5px; box-shadow: 3px 3px 0 #0B0B10; animation: wob2 3.4s ease-in-out infinite;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c0 4-5 5-5 9a5 5 0 0 0 10 0c0-2-1-3-2-4 0 2-1 3-2 3 1-3 0-6-1-8Z"></path></svg>
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #0B0B10; letter-spacing: 0.5px;">DAY 12</span>
+        </div>
+        <div style="background: #12D8C5; border: 3px solid #0B0B10; border-radius: 999px; padding: 5px 9px; box-shadow: 3px 3px 0 #0B0B10; font-family: 'Bungee', Impact, sans-serif; font-size: 10px; color: #0B0B10;">ON FIRE</div>
+      </div>
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 27px; line-height: 1; color: #FFF6E9; text-shadow: 3px 3px 0 {{accent}};">HEY,<br>SHASHANK</div>
+      <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 12px; font-weight: 700; color: #9C9CB8; letter-spacing: 1.6px; text-transform: uppercase;">Aug 27 · Thu · feed me</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+      <div class="tapz" style="width: 48px; height: 48px; background: {{accent}}; border: 3px solid #0B0B10; border-radius: 16px; box-shadow: 4px 4px 0 #0B0B10; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.08s;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6h.09A1.7 1.7 0 0 0 10 3.04V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.09a1.7 1.7 0 0 0 1.56 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z"></path></svg>
+      </div>
+      <div style="background: #C6F135; border: 3px solid #0B0B10; border-radius: 8px; padding: 2px 6px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">SYNCED</div>
+    </div>
+  </div>
+
+  <div style="position: relative; height: 34px; border-top: 3px solid #0B0B10; border-bottom: 3px solid #0B0B10; background: #C6F135; overflow: hidden; display: flex; align-items: center;">
+    <div style="display: flex; gap: 26px; white-space: nowrap; animation: march 13s linear infinite; font-family: 'Bungee', Impact, sans-serif; font-size: 12px; color: #0B0B10; padding-left: 26px;">
+      <span>SNAP IT ★ CHOMP IT ★ LOG IT ★ SNAP IT ★ CHOMP IT ★ LOG IT ★</span>
+      <span>SNAP IT ★ CHOMP IT ★ LOG IT ★ SNAP IT ★ CHOMP IT ★ LOG IT ★</span>
+    </div>
+  </div>
+
+  <div class="scroller" style="position: relative; flex: 1; overflow-y: auto; padding: 18px 16px 120px; display: flex; flex-direction: column; gap: 18px;">
+
+    <div style="position: relative; display: flex; align-items: center; justify-content: center; padding: 6px 0 2px;">
+      <svg width="228" height="228" viewBox="0 0 228 228" style="overflow: visible;">
+        <circle cx="114" cy="114" r="98" fill="#16161F" stroke="#0B0B10" stroke-width="7"></circle>
+        <circle cx="114" cy="114" r="98" fill="none" stroke="#2A2A38" stroke-width="20" stroke-dasharray="4 12" stroke-linecap="round"></circle>
+        <circle cx="114" cy="114" r="98" fill="none" stroke="{{accent}}" stroke-width="20" stroke-linecap="round" stroke-dasharray="616" stroke-dashoffset="168" transform="rotate(-90 114 114)" style="animation: ringfill 1.5s cubic-bezier(0.2,0.9,0.25,1) both;"></circle>
+        <circle cx="114" cy="114" r="108" fill="none" stroke="#0B0B10" stroke-width="4"></circle>
+      </svg>
+      <div style="position: absolute; display: flex; flex-direction: column; align-items: center; gap: 1px;">
+        <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 52px; line-height: 0.92; color: #FFF6E9; text-shadow: 4px 4px 0 #0B0B10;">1240</div>
+        <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: {{accent}}; letter-spacing: 1px;">CALORIES IN</div>
+        <div style="background: #FFD23F; border: 3px solid #0B0B10; border-radius: 999px; padding: 3px 10px; margin-top: 6px; font-family: 'Bungee', Impact, sans-serif; font-size: 11px; color: #0B0B10; box-shadow: 3px 3px 0 #0B0B10;">760 LEFT</div>
+      </div>
+      <div style="position: absolute; top: 2px; right: 22px; animation: float 3.6s ease-in-out infinite;">
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <path d="M12 40c0-16 10-27 23-27s23 11 23 27c0 12-9 18-23 18S12 52 12 40Z" fill="#12D8C5" stroke="#0B0B10" stroke-width="3.5"></path>
+          <rect x="24" y="30" width="22" height="16" rx="5" fill="#FFF6E9" stroke="#0B0B10" stroke-width="3"></rect>
+          <circle cx="35" cy="38" r="4.6" fill="#0B0B10" style="animation: blink 4.2s infinite;"></circle>
+          <circle cx="36.6" cy="36.4" r="1.4" fill="#FFF6E9"></circle>
+          <path d="M27 24l4-6h8l4 6" fill="#12D8C5" stroke="#0B0B10" stroke-width="3" stroke-linejoin="round"></path>
+          <path d="M26 52c3 3 15 3 18 0" stroke="#0B0B10" stroke-width="3" stroke-linecap="round" fill="none"></path>
+        </svg>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      <div style="background: #FF4D7A; border: 3px solid #0B0B10; border-radius: 16px; box-shadow: 4px 4px 0 #0B0B10; padding: 10px 9px; display: flex; flex-direction: column; gap: 5px; transform: rotate(-1.6deg);">
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4a5 5 0 0 1 0 10H9a5 5 0 0 1 0-10Z"></path><path d="M9 14v6"></path><path d="M15 14v6"></path></svg>
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 9px; color: #0B0B10;">PROTEIN</span>
+        </div>
+        <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 24px; color: #0B0B10; line-height: 1;">68<span style="font-size: 11px;">g</span></div>
+        <div style="height: 9px; background: #0B0B10; border-radius: 999px; overflow: hidden;"><div style="height: 100%; width: 45%; background: #FFF6E9; animation: barfill 1.3s 0.2s cubic-bezier(0.2,0.9,0.25,1) both;"></div></div>
+        <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #0B0B10; opacity: 0.7;">of 150g</div>
+      </div>
+      <div style="background: #FFD23F; border: 3px solid #0B0B10; border-radius: 16px; box-shadow: 4px 4px 0 #0B0B10; padding: 10px 9px; display: flex; flex-direction: column; gap: 5px; transform: rotate(1.2deg);">
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c6-2 10-8 16-16"></path><path d="M8 20c4-2 7-6 11-12"></path><path d="M12 20c3-1 5-4 8-8"></path></svg>
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 9px; color: #0B0B10;">CARBS</span>
+        </div>
+        <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 24px; color: #0B0B10; line-height: 1;">142<span style="font-size: 11px;">g</span></div>
+        <div style="height: 9px; background: #0B0B10; border-radius: 999px; overflow: hidden;"><div style="height: 100%; width: 63%; background: #FFF6E9; animation: barfill 1.3s 0.34s cubic-bezier(0.2,0.9,0.25,1) both;"></div></div>
+        <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #0B0B10; opacity: 0.7;">of 225g</div>
+      </div>
+      <div style="background: #22D3EE; border: 3px solid #0B0B10; border-radius: 16px; box-shadow: 4px 4px 0 #0B0B10; padding: 10px 9px; display: flex; flex-direction: column; gap: 5px; transform: rotate(-1deg);">
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4 3 6 6 6 10a6 6 0 0 1-12 0c0-4 2-7 6-10Z"></path><circle cx="12" cy="14" r="2.4"></circle></svg>
+          <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 9px; color: #0B0B10;">FAT</span>
+        </div>
+        <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 24px; color: #0B0B10; line-height: 1;">39<span style="font-size: 11px;">g</span></div>
+        <div style="height: 9px; background: #0B0B10; border-radius: 999px; overflow: hidden;"><div style="height: 100%; width: 70%; background: #FFF6E9; animation: barfill 1.3s 0.48s cubic-bezier(0.2,0.9,0.25,1) both;"></div></div>
+        <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 9px; font-weight: 700; color: #0B0B10; opacity: 0.7;">of 56g</div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 2px;">
+      <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 19px; color: #FFF6E9; text-shadow: 2px 2px 0 #12D8C5;">TODAY&#39;S HAUL</div>
+      <div style="background: #FFF6E9; border: 3px solid #0B0B10; border-radius: 999px; padding: 3px 10px; font-family: 'Bungee', Impact, sans-serif; font-size: 10px; color: #0B0B10;">3 LOGGED</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 13px;">
+      <div style="background: #FFF6E9; border: 3px solid #0B0B10; border-radius: 20px; box-shadow: 5px 5px 0 #0B0B10; padding: 11px; display: flex; gap: 11px; align-items: center; transform: rotate(-0.9deg);">
+        <div style="width: 62px; height: 62px; border-radius: 14px; border: 3px solid #0B0B10; background: linear-gradient(135deg, #FF9F45, #FF3D5A); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"></path><path d="M3 17h18"></path><path d="M9 9c0-2 2-2 2-4"></path><path d="M13 9c0-2 2-2 2-4"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+          <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 14px; color: #0B0B10; line-height: 1.1;">PANEER BOWL</div>
+          <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+            <span style="background: #FF4D7A; border: 2px solid #0B0B10; border-radius: 999px; padding: 1px 7px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">540 KCAL</span>
+            <span style="background: #12D8C5; border: 2px solid #0B0B10; border-radius: 999px; padding: 1px 7px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">28P</span>
+            <span style="background: #FFD23F; border: 2px solid #0B0B10; border-radius: 999px; padding: 1px 7px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">LUNCH</span>
+          </div>
+          <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 700; color: #55556E;">1:12 PM · AI says 92% sure</div>
+        </div>
+      </div>
+
+      <div style="background: #FFF6E9; border: 3px solid #0B0B10; border-radius: 20px; box-shadow: 5px 5px 0 #0B0B10; padding: 11px; display: flex; gap: 11px; align-items: center; transform: rotate(0.7deg);">
+        <div style="width: 62px; height: 62px; border-radius: 14px; border: 3px solid #0B0B10; background: linear-gradient(135deg, #C6F135, #12D8C5); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-7-3-7-7 0-4 3-8 7-8s7 4 7 8c0 4-3 7-7 7Z"></path><path d="M12 6V3"></path><path d="M12 10v7"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+          <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 14px; color: #0B0B10; line-height: 1.1;">OATS &amp; BERRIES</div>
+          <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+            <span style="background: #FF4D7A; border: 2px solid #0B0B10; border-radius: 999px; padding: 1px 7px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">377 KCAL</span>
+            <span style="background: #12D8C5; border: 2px solid #0B0B10; border-radius: 999px; padding: 1px 7px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">12P</span>
+            <span style="background: #A86BFF; border: 2px solid #0B0B10; border-radius: 999px; padding: 1px 7px; font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">MORNING</span>
+          </div>
+          <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 700; color: #55556E;">8:04 AM · re-logged from Tue</div>
+        </div>
+      </div>
+
+      <div style="background: #16161F; border: 3px dashed #FF4D7A; border-radius: 20px; padding: 16px; display: flex; align-items: center; gap: 12px;">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FF4D7A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="animation: buzz 0.5s infinite; flex-shrink: 0;"><rect x="3" y="6" width="18" height="14" rx="3"></rect><circle cx="12" cy="13" r="3.4"></circle><path d="M8 6l1.6-2.4h4.8L16 6"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-family: 'Bungee', Impact, sans-serif; font-size: 13px; color: #FFF6E9;">DINNER IS MISSING</div>
+          <div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 11px; font-weight: 500; color: #9C9CB8;">Snap it before Snappy files a report</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{burst}}" hint-placeholder-val="{{ true }}">
+    <div style="position: absolute; right: 52px; bottom: 126px; width: 0; height: 0; pointer-events: none; z-index: 40;">
+      <sc-for list="{{confetti}}" as="c" hint-placeholder-count="12">
+        <div style="{{c.style}}"></div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <div onClick="{{snap}}" class="tapz" style="position: absolute; right: 18px; bottom: 96px; width: 74px; height: 74px; border-radius: 24px; background: #FFD23F; border: 4px solid #0B0B10; box-shadow: 6px 6px 0 #0B0B10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; z-index: 30; animation: wob 2.6s ease-in-out infinite; transition: transform 0.08s;">
+    <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"></rect><circle cx="12" cy="13" r="3.4"></circle><path d="M8 6l1.6-2.4h4.8L16 6"></path></svg>
+    <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 9px; color: #0B0B10;">SNAP</span>
+  </div>
+
+  <div style="position: relative; height: 84px; background: #FFF6E9; border-top: 4px solid #0B0B10; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; padding: 0 6px; z-index: 20;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 4px;">
+      <div style="background: {{accent}}; border: 3px solid #0B0B10; border-radius: 14px; padding: 6px 12px; box-shadow: 3px 3px 0 #0B0B10;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"></path><path d="M3 17h18"></path><path d="M12 9V4"></path></svg>
+      </div>
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">TODAY</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 4px; opacity: 0.5;">
+      <div style="padding: 6px 12px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+      </div>
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">HISTORY</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 4px; opacity: 0.5;">
+      <div style="padding: 6px 12px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11"></path><path d="M10 20V4"></path><path d="M16 20v-6"></path><path d="M22 20H2"></path></svg>
+      </div>
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">STATS</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 4px; opacity: 0.5;">
+      <div style="padding: 6px 12px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B0B10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+      </div>
+      <span style="font-family: 'Bungee', Impact, sans-serif; font-size: 8px; color: #0B0B10;">YOU</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#FF4D7A","options":["#FF4D7A","#12D8C5","#FFD23F","#A86BFF"],"tsType":"string"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { burst: false, parity: 0 };
+  }
+
+  audio() {
+    if (this._ac === undefined) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      this._ac = AC ? new AC() : null;
+    }
+    return this._ac;
+  }
+
+  // Cartoon "boing" + crunch: a pitch-dropping sine over a short filtered
+  // noise burst. Synthesised inline so the artboard needs no audio files.
+  boing() {
+    var ac = this.audio();
+    if (!ac) return;
+    if (ac.state === 'suspended') ac.resume();
+    var t = ac.currentTime;
+
+    var osc = ac.createOscillator();
+    var g = ac.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(860, t);
+    osc.frequency.exponentialRampToValueAtTime(170, t + 0.26);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.28, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    osc.connect(g).connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.32);
+
+    var len = Math.floor(ac.sampleRate * 0.09);
+    var buf = ac.createBuffer(1, len, ac.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    var src = ac.createBufferSource();
+    var bp = ac.createBiquadFilter();
+    var ng = ac.createGain();
+    src.buffer = buf;
+    bp.type = 'bandpass';
+    bp.frequency.value = 2100;
+    ng.gain.value = 0.17;
+    src.connect(bp).connect(ng).connect(ac.destination);
+    src.start(t + 0.02);
+  }
+
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent || '#FF4D7A';
+    var shades = ['#FFD23F', '#12D8C5', accent, '#C6F135', '#A86BFF', '#22D3EE'];
+    var name = this.state.parity ? 'pop-b' : 'pop-a';
+
+    var confetti = [];
+    for (var i = 0; i < 14; i++) {
+      var ang = (i / 14) * Math.PI * 2;
+      var dist = 66 + (i % 4) * 22;
+      var dx = Math.round(Math.cos(ang) * dist);
+      var dy = Math.round(Math.sin(ang) * dist) - 24;
+      var size = 8 + (i % 3) * 4;
+      confetti.push({
+        style: 'position:absolute;width:' + size + 'px;height:' + size + 'px;background:' +
+          shades[i % shades.length] + ';border:2px solid #0B0B10;border-radius:' +
+          (i % 2 ? '3px' : '999px') + ';--dx:' + dx + 'px;--dy:' + dy + 'px;--rot:' +
+          (i * 47) + 'deg;animation:' + name + ' 0.72s cubic-bezier(0.15,0.8,0.3,1) both;'
+      });
+    }
+
+    return {
+      accent: accent,
+      burst: this.state.burst,
+      confetti: confetti,
+      snap: function () {
+        self.boing();
+        self.setState({ burst: true, parity: self.state.parity ? 0 : 1 });
+        clearTimeout(self._t);
+        self._t = setTimeout(function () { self.setState({ burst: false }); }, 760);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
