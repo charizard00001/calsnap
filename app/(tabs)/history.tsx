@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
     Pressable,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
@@ -9,20 +10,22 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
 import MealCard from '@/components/MealCard';
+import MealDetailModal from '@/components/MealDetailModal';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
 import { useDailyLogsRange } from '@/hooks/useDailyLog';
 import { useGoals } from '@/hooks/useGoals';
 import { DEFAULT_GOALS } from '@/lib/profile';
-import type { DailyLog } from '@/types';
+import type { DailyLog, MealEntry } from '@/types';
 import { formatDisplayDate, getLastNDays, parseDateKey } from '@/utils/dateHelpers';
 
 export default function HistoryScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedMeal, setSelectedMeal] = useState<MealEntry | null>(null);
   const { data: goals = DEFAULT_GOALS } = useGoals();
 
   const dates = useMemo(() => getLastNDays(30), []);
-  const { data: logs = [] } = useDailyLogsRange(dates);
+  const { data: logs = [], refetch, isRefetching } = useDailyLogsRange(dates);
   const selectedLog = selectedDate ? logs.find((l) => l.date === selectedDate) ?? null : null;
 
   const getColorForDay = (log: DailyLog): string => {
@@ -40,6 +43,13 @@ export default function HistoryScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={Colors.accentPrimary}
+          />
+        }
       >
         <Text style={styles.title}>History</Text>
         <Text style={styles.subtitle}>Last 30 days</Text>
@@ -95,7 +105,7 @@ export default function HistoryScreen() {
 
             {selectedLog.meals.length > 0 ? (
               selectedLog.meals.map((meal) => (
-                <MealCard key={meal.id} meal={meal} />
+                <MealCard key={meal.id} meal={meal} onPress={setSelectedMeal} />
               ))
             ) : (
               <Text style={styles.noMeals}>No meals logged this day</Text>
@@ -103,6 +113,12 @@ export default function HistoryScreen() {
           </Animated.View>
         )}
       </ScrollView>
+
+      <MealDetailModal
+        meal={selectedMeal}
+        date={selectedDate ?? ''}
+        onClose={() => setSelectedMeal(null)}
+      />
     </View>
   );
 }

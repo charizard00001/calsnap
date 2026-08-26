@@ -17,15 +17,20 @@ import Animated, {
 interface MealCardProps {
   meal: MealEntry;
   onDelete?: (id: string) => void;
+  onPress?: (meal: MealEntry) => void;
 }
 
-export default function MealCard({ meal, onDelete }: MealCardProps) {
+export default function MealCard({ meal, onDelete, onPress }: MealCardProps) {
   const translateX = useSharedValue(0);
   const deleteThreshold = -100;
 
   const handleDelete = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     onDelete?.(meal.id);
+  };
+
+  const handlePress = () => {
+    onPress?.(meal);
   };
 
   const panGesture = Gesture.Pan()
@@ -44,6 +49,12 @@ export default function MealCard({ meal, onDelete }: MealCardProps) {
       }
     });
 
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    runOnJS(handlePress)();
+  });
+
+  const composedGesture = Gesture.Race(panGesture, tapGesture);
+
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
@@ -61,7 +72,7 @@ export default function MealCard({ meal, onDelete }: MealCardProps) {
         <Text style={styles.deleteText}>🗑 Delete</Text>
       </Animated.View>
 
-      <GestureDetector gesture={panGesture}>
+      <GestureDetector gesture={composedGesture}>
         <Animated.View style={cardStyle}>
           <LinearGradient
             colors={[Colors.cardBg, Colors.secondaryBg]}

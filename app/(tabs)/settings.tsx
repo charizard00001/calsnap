@@ -13,21 +13,25 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
 import { useGoals, useUpdateGoals } from '@/hooks/useGoals';
-import { confirmAction } from '@/lib/confirm';
+import { deleteAccount } from '@/lib/account';
+import { confirmAction, notify } from '@/lib/confirm';
 import { deleteAllMealsFromSupabase, deleteMealsForDate } from '@/lib/mealsRepository';
 import { DEFAULT_GOALS } from '@/lib/profile';
 import { supabase } from '@/lib/supabase';
 import { getTodayKey } from '@/utils/dateHelpers';
 import { clearAllData, clearDailyLog } from '@/utils/storage';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link, useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const { data: goals = DEFAULT_GOALS } = useGoals();
   const updateGoalsMutation = useUpdateGoals();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [name, setName] = useState(goals.name);
   const [calGoal, setCalGoal] = useState(String(goals.calorieGoal));
   const [proGoal, setProGoal] = useState(String(goals.proteinGoal));
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const saveName = () => {
     if (name.trim()) {
@@ -92,6 +96,28 @@ export default function SettingsScreen() {
     await clearAllData();
     queryClient.invalidateQueries();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  };
+
+  const handleDeleteAccount = async () => {
+    const ok = await confirmAction(
+      'Delete Account',
+      'This permanently deletes your account, every meal you\'ve logged, and all photos. This cannot be undone.',
+      'Delete My Account'
+    );
+    if (!ok) return;
+
+    setDeletingAccount(true);
+    try {
+      await deleteAccount();
+      await clearAllData();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      await supabase.auth.signOut();
+      router.replace('/auth');
+    } catch (e) {
+      notify('Deletion failed', e instanceof Error ? e.message : 'Something went wrong.');
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   return (
@@ -180,7 +206,27 @@ export default function SettingsScreen() {
               Permanently deletes everything
             </Text>
           </Pressable>
+
+          <Pressable
+            onPress={handleDeleteAccount}
+            style={styles.dangerButton}
+            disabled={deletingAccount}
+          >
+            <View style={[styles.dangerBorder, { borderColor: Colors.accentHot }]} />
+            <Text style={[styles.dangerButtonText, { color: Colors.accentHot }]}>
+              {deletingAccount ? 'Deleting Account...' : 'Delete Account'}
+            </Text>
+            <Text style={styles.dangerButtonSub}>
+              Deletes your account, all meals, and all photos for good
+            </Text>
+          </Pressable>
         </Animated.View>
+
+        <View style={styles.legalRow}>
+          <Link href="/privacy" style={styles.legalLink}>Privacy Policy</Link>
+          <Text style={styles.legalDivider}>·</Text>
+          <Link href="/terms" style={styles.legalLink}>Terms of Service</Link>
+        </View>
       </ScrollView>
     </View>
   );
@@ -297,5 +343,20 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     color: Colors.textMuted,
     marginTop: 4,
+  },
+  legalRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: Spacing.xl,
+    gap: Spacing.sm,
+  },
+  legalLink: {
+    fontSize: FontSizes.sm,
+    color: Colors.textMuted,
+  },
+  legalDivider: {
+    fontSize: FontSizes.sm,
+    color: Colors.textMuted,
   },
 });

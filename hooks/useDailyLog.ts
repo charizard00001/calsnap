@@ -1,6 +1,6 @@
-import { deleteMealFromSupabase, fetchDailyLog, fetchDailyLogsRange, syncMealToSupabase } from '@/lib/mealsRepository';
+import { deleteMealFromSupabase, fetchDailyLog, fetchDailyLogsRange, syncMealToSupabase, updateMealInSupabase } from '@/lib/mealsRepository';
 import type { DailyLog, MealEntry } from '@/types';
-import { addMealToLog, removeMealFromLog } from '@/utils/storage';
+import { addMealToLog, removeMealFromLog, updateMealInLog } from '@/utils/storage';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useDailyLog(date: string) {
@@ -24,6 +24,29 @@ export function useAddMeal() {
     mutationFn: async ({ date, meal }: { date: string; meal: MealEntry }) => {
       const updated = await addMealToLog(date, meal);
       syncMealToSupabase(meal).catch(() => {});
+      return { date, updated };
+    },
+    onSuccess: ({ date, updated }) => {
+      queryClient.setQueryData<DailyLog>(['dailyLog', date], updated);
+      queryClient.invalidateQueries({ queryKey: ['dailyLogs'] });
+    },
+  });
+}
+
+export function useUpdateMeal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      date,
+      mealId,
+      updates,
+    }: {
+      date: string;
+      mealId: string;
+      updates: Partial<Pick<MealEntry, 'foodName' | 'calories' | 'protein' | 'carbs' | 'fat' | 'mealType' | 'userNote'>>;
+    }) => {
+      const updated = await updateMealInLog(date, mealId, updates);
+      updateMealInSupabase(mealId, updates).catch(() => {});
       return { date, updated };
     },
     onSuccess: ({ date, updated }) => {

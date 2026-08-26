@@ -153,6 +153,12 @@ export default function AuthScreen() {
                 : 'Already have an account? Sign in'}
             </Text>
           </Pressable>
+
+          {mode === 'signIn' && (
+            <Pressable onPress={() => router.push('/forgot-password')}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </Pressable>
+          )}
         </Animated.View>
       </KeyboardAvoidingView>
     </View>
@@ -212,5 +218,10 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
     fontSize: FontSizes.sm,
     color: Colors.accentSecondary,
+  },
+  forgotText: {
+    marginTop: Spacing.md,
+    fontSize: FontSizes.sm,
+    color: Colors.textMuted,
   },
 });

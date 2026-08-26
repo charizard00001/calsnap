@@ -30,18 +30,24 @@ function generateParticles(width: number, height: number): Particle[] {
   }));
 }
 
-export default function ParticleBackground() {
+function ParticleCircles({ particles, time, width, height }: { particles: Particle[]; time: number; width: number; height: number }) {
+  return (
+    <>
+      {particles.map((p, i) => {
+        const cy = height - ((p.baseY + time * p.speed) % height);
+        const cx = p.x + Math.sin(time * 0.001 + p.baseY) * 10;
+        return (
+          <Circle key={i} cx={cx} cy={cy} r={p.radius} opacity={p.opacity} color={p.color} />
+        );
+      })}
+    </>
+  );
+}
+
+// Native: driven by Reanimated shared values on a real UI thread via
+// useFrameCallback, same as before.
+function NativeParticleBackground() {
   const { width, height } = useWindowDimensions();
-
-  // react-native-skia's worklet-driven paint (useFrameCallback + shared
-  // values feeding Canvas props) isn't reliable on web yet — the Skia JSI
-  // shim loses its CanvasKit reference inside the worklet context. Native
-  // (iOS/Android) uses synchronous JSI and isn't affected. Revisit when
-  // building out the Phase 4 "crazy design" Skia work.
-  if (Platform.OS === 'web') {
-    return null;
-  }
-
   const particles = React.useMemo(() => generateParticles(width, height), [width, height]);
   const time = useSharedValue(0);
 
@@ -51,20 +57,43 @@ export default function ParticleBackground() {
 
   return (
     <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
-      {particles.map((p, i) => {
-        const cy = height - ((p.baseY + time.value * p.speed) % height);
-        const cx = p.x + Math.sin(time.value * 0.001 + p.baseY) * 10;
-        return (
-          <Circle
-            key={i}
-            cx={cx}
-            cy={cy}
-            r={p.radius}
-            opacity={p.opacity}
-            color={p.color}
-          />
-        );
-      })}
+      <ParticleCircles particles={particles} time={time.value} width={width} height={height} />
     </Canvas>
   );
+}
+
+// Web: react-native-skia's web renderer is patched (see
+// patches/@shopify+react-native-skia+*.patch) to always draw synchronously
+// via plain React re-renders rather than Reanimated's worklet runtime, which
+// crashes on web. So particle motion here is driven by requestAnimationFrame
+// + setState instead of a shared value.
+function WebParticleBackground() {
+  const { width, height } = useWindowDimensions();
+  const particles = React.useMemo(() => generateParticles(width, height), [width, height]);
+  const [time, setTime] = React.useState(0);
+
+  React.useEffect(() => {
+    let raf: number;
+    const start = performance.now();
+    const tick = (now: number) => {
+      setTime(now - start);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+      <ParticleCircles particles={particles} time={time} width={width} height={height} />
+    </Canvas>
+  );
+}
+
+export default function ParticleBackground() {
+  if (Platform.OS === 'web' && typeof (global as any).CanvasKit === 'undefined') {
+    // CanvasKit failed to load (see app/_layout.tsx) — skip rather than crash.
+    return null;
+  }
+  return Platform.OS === 'web' ? <WebParticleBackground /> : <NativeParticleBackground />;
 }

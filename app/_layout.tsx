@@ -41,17 +41,29 @@ const OnboardingContext = createContext<{ markOnboarded: () => void }>({
 });
 export const useOnboardingContext = () => useContext(OnboardingContext);
 
+// Context so reset-password can signal it's done, letting normal
+// session-based routing resume.
+const RecoveryContext = createContext<{ clearRecovery: () => void }>({
+  clearRecovery: () => {},
+});
+export const useRecoveryContext = () => useContext(RecoveryContext);
+
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [recoveryMode, setRecoveryMode] = useState(false);
   const router = useRouter();
   const segments = useSegments();
 
   const markOnboarded = useCallback(() => {
     setOnboarded(true);
+  }, []);
+
+  const clearRecovery = useCallback(() => {
+    setRecoveryMode(false);
   }, []);
 
   useEffect(() => {
@@ -78,6 +90,12 @@ export default function RootLayout() {
         migrateLocalMealsToSupabase().finally(() => queryClient.invalidateQueries());
       } else if (event === 'SIGNED_OUT') {
         queryClient.clear();
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // Supabase establishes a session from the recovery link's token
+        // before this fires — without this flag the routing effect below
+        // would treat that session as a normal sign-in and send the user
+        // straight to the dashboard instead of the password-reset form.
+        setRecoveryMode(true);
       }
     });
     return () => listener.subscription.unsubscribe();
@@ -103,7 +121,20 @@ export default function RootLayout() {
 
     const inAuth = segments[0] === 'auth';
     const inOnboarding = segments[0] === 'onboarding';
+    const inForgotPassword = segments[0] === 'forgot-password';
+    const inResetPassword = segments[0] === 'reset-password';
+    const inLegal = segments[0] === 'privacy' || segments[0] === 'terms';
 
+    if (recoveryMode) {
+      if (!inResetPassword) router.replace('/reset-password');
+      return;
+    }
+
+    if (!session && (inForgotPassword || inResetPassword || inLegal)) {
+      // These are reachable without a session (pre-signup, or an app-store
+      // listing link).
+      return;
+    }
     if (!session && !inAuth) {
       router.replace('/auth');
     } else if (session && inAuth) {
@@ -113,7 +144,7 @@ export default function RootLayout() {
     } else if (session && onboarded && inOnboarding) {
       router.replace('/(tabs)');
     }
-  }, [session, onboarded, loaded]);
+  }, [session, onboarded, loaded, recoveryMode, segments]);
 
   if (!loaded || onboarded === null || session === undefined) {
     return null;
@@ -122,25 +153,43 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <OnboardingContext.Provider value={{ markOnboarded }}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <ThemeProvider value={CalSnapDarkTheme}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen
-                name="add-meal"
-                options={{ presentation: 'fullScreenModal', animation: 'fade' }}
-              />
-              <Stack.Screen
-                name="onboarding"
-                options={{ animation: 'fade' }}
-              />
-              <Stack.Screen
-                name="auth"
-                options={{ animation: 'fade' }}
-              />
-            </Stack>
-          </ThemeProvider>
-        </GestureHandlerRootView>
+        <RecoveryContext.Provider value={{ clearRecovery }}>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <ThemeProvider value={CalSnapDarkTheme}>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen
+                  name="add-meal"
+                  options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+                />
+                <Stack.Screen
+                  name="onboarding"
+                  options={{ animation: 'fade' }}
+                />
+                <Stack.Screen
+                  name="auth"
+                  options={{ animation: 'fade' }}
+                />
+                <Stack.Screen
+                  name="forgot-password"
+                  options={{ animation: 'fade' }}
+                />
+                <Stack.Screen
+                  name="reset-password"
+                  options={{ animation: 'fade' }}
+                />
+                <Stack.Screen
+                  name="privacy"
+                  options={{ animation: 'fade' }}
+                />
+                <Stack.Screen
+                  name="terms"
+                  options={{ animation: 'fade' }}
+                />
+              </Stack>
+            </ThemeProvider>
+          </GestureHandlerRootView>
+        </RecoveryContext.Provider>
       </OnboardingContext.Provider>
     </QueryClientProvider>
   );

@@ -1,0 +1,47 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/sksg/Container.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/sksg/Container.web.js
+index 5155d49..33c6f5c 100644
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/sksg/Container.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/sksg/Container.web.js
+@@ -74,11 +74,11 @@ class ReanimatedContainer extends _StaticContainer.Container {
+   }
+ }
+ const createContainer = (Skia, nativeId, _onSize) => {
+-  if (_renderHelpers.HAS_REANIMATED_3 && nativeId !== -1) {
+-    return new ReanimatedContainer(Skia, nativeId);
+-  } else {
+-    return new _StaticContainer.StaticContainer(Skia, nativeId);
+-  }
++  // PATCH (patches/@shopify+react-native-skia+2.2.12.patch): see
++  // Container.web.js (module build) for the full explanation — always use
++  // StaticContainer on web to avoid a crash inside Reanimated's web worklet
++  // runtime.
++  return new _StaticContainer.StaticContainer(Skia, nativeId);
+ };
+ exports.createContainer = createContainer;
+ //# sourceMappingURL=Container.web.js.map
+\ No newline at end of file
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/sksg/Container.web.js b/node_modules/@shopify/react-native-skia/lib/module/sksg/Container.web.js
+index a3e9071..7e24702 100644
+--- a/node_modules/@shopify/react-native-skia/lib/module/sksg/Container.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/sksg/Container.web.js
+@@ -67,10 +67,14 @@ class ReanimatedContainer extends Container {
+   }
+ }
+ export const createContainer = (Skia, nativeId, _onSize) => {
+-  if (HAS_REANIMATED_3 && nativeId !== -1) {
+-    return new ReanimatedContainer(Skia, nativeId);
+-  } else {
+-    return new StaticContainer(Skia, nativeId);
+-  }
++  // PATCH (patches/@shopify+react-native-skia+2.2.12.patch): always use
++  // StaticContainer on web, even when Reanimated 3 is present. Reanimated's
++  // runOnUI(...) worklet call (ReanimatedContainer, below) loses its closure
++  // reference to the Skia JSI object inside react-native-worklets' web
++  // runtime, crashing every on-screen Canvas with "Cannot read properties of
++  // undefined (reading 'PictureRecorder')". StaticContainer draws
++  // synchronously on the JS thread via plain React re-renders instead, which
++  // works reliably on web. Native is unaffected (uses Container.native.js).
++  return new StaticContainer(Skia, nativeId);
+ };
+ //# sourceMappingURL=Container.web.js.map
+\ No newline at end of file

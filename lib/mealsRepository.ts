@@ -123,6 +123,25 @@ export async function syncMealToSupabase(meal: MealEntry): Promise<void> {
   });
 }
 
+export async function updateMealInSupabase(
+  mealId: string,
+  updates: Partial<Pick<MealEntry, 'foodName' | 'calories' | 'protein' | 'carbs' | 'fat' | 'mealType' | 'userNote'>>
+): Promise<void> {
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return;
+
+  const row: Record<string, unknown> = {};
+  if (updates.foodName !== undefined) row.food_name = updates.foodName;
+  if (updates.calories !== undefined) row.calories = updates.calories;
+  if (updates.protein !== undefined) row.protein = updates.protein;
+  if (updates.carbs !== undefined) row.carbs = updates.carbs;
+  if (updates.fat !== undefined) row.fat = updates.fat;
+  if (updates.mealType !== undefined) row.meal_type = updates.mealType;
+  if (updates.userNote !== undefined) row.user_note = updates.userNote;
+
+  await supabase.from('meals').update(row).eq('id', mealId);
+}
+
 export async function deleteMealFromSupabase(mealId: string): Promise<void> {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return;

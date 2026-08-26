@@ -22,13 +22,15 @@ import Animated, {
 
 import MacroCard from '@/components/MacroCard';
 import MealCard from '@/components/MealCard';
+import MealDetailModal from '@/components/MealDetailModal';
 import ParticleBackground from '@/components/ParticleBackground';
 import ProgressRing from '@/components/ProgressRing';
+import SyncStatusBadge from '@/components/SyncStatusBadge';
 import { Colors, FontSizes, Gradients, MacroThemes, Spacing } from '@/constants/theme';
 import { useDailyLog, useRemoveMeal } from '@/hooks/useDailyLog';
 import { useGoals } from '@/hooks/useGoals';
 import { DEFAULT_GOALS } from '@/lib/profile';
-import type { DailyLog } from '@/types';
+import type { DailyLog, MealEntry } from '@/types';
 import { formatDisplayDate, getDayOfTraining, getTodayKey } from '@/utils/dateHelpers';
 
 const emptyLog: DailyLog = {
@@ -43,9 +45,10 @@ const emptyLog: DailyLog = {
 export default function DashboardScreen() {
   const router = useRouter();
   const today = getTodayKey();
-  const { data: todayLog = emptyLog } = useDailyLog(today);
+  const { data: todayLog = emptyLog, refetch, isRefetching } = useDailyLog(today);
   const { data: goals = DEFAULT_GOALS } = useGoals();
   const removeMealMutation = useRemoveMeal();
+  const [selectedMeal, setSelectedMeal] = React.useState<MealEntry | null>(null);
 
   const dayNumber = getDayOfTraining(goals.installDate);
   const todayFormatted = formatDisplayDate(new Date());
@@ -93,6 +96,7 @@ export default function DashboardScreen() {
           <Text style={styles.greetingName}>Hey, {goals.name}</Text>
           <Text style={styles.dayCounter}>🔥 Day {dayNumber} streak</Text>
           <Text style={styles.dateText}>{todayFormatted}</Text>
+          <SyncStatusBadge />
         </View>
         <Pressable
           onPress={() => router.push('/(tabs)/settings')}
@@ -145,11 +149,13 @@ export default function DashboardScreen() {
       <FlashList
         data={todayLog.meals}
         renderItem={({ item }) => (
-          <MealCard meal={item} onDelete={handleDeleteMeal} />
+          <MealCard meal={item} onDelete={handleDeleteMeal} onPress={setSelectedMeal} />
         )}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={headerComponent}
         contentContainerStyle={{ paddingHorizontal: Spacing.md, paddingBottom: 100 }}
+        refreshing={isRefetching}
+        onRefresh={refetch}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyEmoji}>🍽️</Text>
@@ -170,6 +176,12 @@ export default function DashboardScreen() {
           </LinearGradient>
         </Pressable>
       </Animated.View>
+
+      <MealDetailModal
+        meal={selectedMeal}
+        date={today}
+        onClose={() => setSelectedMeal(null)}
+      />
     </View>
   );
 }

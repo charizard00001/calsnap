@@ -75,6 +75,19 @@ export async function addMealToLog(date: string, meal: MealEntry): Promise<Daily
   return updated;
 }
 
+export async function updateMealInLog(
+  date: string,
+  mealId: string,
+  updates: Partial<MealEntry>
+): Promise<DailyLog> {
+  const log = await getDailyLog(date);
+  log.meals = log.meals.map((m) => (m.id === mealId ? { ...m, ...updates } : m));
+  const totals = recalcTotals(log.meals);
+  const updated: DailyLog = { ...log, ...totals };
+  await AsyncStorage.setItem(logKey(date), JSON.stringify(updated));
+  return updated;
+}
+
 export async function removeMealFromLog(date: string, mealId: string): Promise<DailyLog> {
   const log = await getDailyLog(date);
   log.meals = log.meals.filter((m) => m.id !== mealId);
