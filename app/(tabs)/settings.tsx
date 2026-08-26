@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Pressable,
     ScrollView,
@@ -32,7 +32,20 @@ export default function SettingsScreen() {
   const [proGoal, setProGoal] = useState(String(goals.proteinGoal));
   const [deletingAccount, setDeletingAccount] = useState(false);
 
+  // useGoals() starts on placeholderData (DEFAULT_GOALS) and resolves the
+  // real profile a beat later. On a cold load straight to this screen the
+  // fields were initialised from the placeholder and never caught up — pull
+  // the values in when the query settles, unless a field is mid-edit.
+  const editing = useRef(false);
+  useEffect(() => {
+    if (editing.current) return;
+    setName(goals.name);
+    setCalGoal(String(goals.calorieGoal));
+    setProGoal(String(goals.proteinGoal));
+  }, [goals.name, goals.calorieGoal, goals.proteinGoal]);
+
   const saveName = () => {
+    editing.current = false;
     if (name.trim()) {
       updateGoalsMutation.mutate({ name: name.trim() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -40,6 +53,7 @@ export default function SettingsScreen() {
   };
 
   const saveCalGoal = () => {
+    editing.current = false;
     const val = parseInt(calGoal, 10);
     if (val > 0) {
       updateGoalsMutation.mutate({ calorieGoal: val });
@@ -48,6 +62,7 @@ export default function SettingsScreen() {
   };
 
   const saveProGoal = () => {
+    editing.current = false;
     const val = parseInt(proGoal, 10);
     if (val > 0) {
       updateGoalsMutation.mutate({ proteinGoal: val });
@@ -137,6 +152,7 @@ export default function SettingsScreen() {
               style={styles.input}
               value={name}
               onChangeText={setName}
+              onFocus={() => { editing.current = true; }}
               onBlur={saveName}
               placeholder="Enter name"
               placeholderTextColor={Colors.textMuted}
@@ -152,6 +168,7 @@ export default function SettingsScreen() {
                 style={styles.input}
                 value={calGoal}
                 onChangeText={setCalGoal}
+                onFocus={() => { editing.current = true; }}
                 onBlur={saveCalGoal}
                 keyboardType="numeric"
                 placeholder="2000"
@@ -170,6 +187,7 @@ export default function SettingsScreen() {
                 style={styles.input}
                 value={proGoal}
                 onChangeText={setProGoal}
+                onFocus={() => { editing.current = true; }}
                 onBlur={saveProGoal}
                 keyboardType="numeric"
                 placeholder="150"
