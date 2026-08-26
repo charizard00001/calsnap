@@ -5,8 +5,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-
+import { Appear } from '@/components/Appear';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
 import { useDailyLogsRange } from '@/hooks/useDailyLog';
@@ -69,7 +68,7 @@ export default function InsightsScreen() {
         <Text style={styles.subtitle}>Your last 7 days</Text>
 
         {/* Stats summary */}
-        <Animated.View entering={FadeInUp.duration(600)} style={styles.summaryRow}>
+        <Appear style={styles.summaryRow}>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Avg Calories</Text>
             <Text style={[styles.summaryValue, { color: Colors.accentWarm }]}>
@@ -84,10 +83,10 @@ export default function InsightsScreen() {
             </Text>
             <Text style={styles.summaryUnit}>g protein/day</Text>
           </View>
-        </Animated.View>
+        </Appear>
 
         {/* Streak */}
-        <Animated.View entering={FadeInUp.delay(200).duration(600)} style={styles.streakCard}>
+        <Appear delay={200} style={styles.streakCard}>
           <Text style={styles.streakLabel}>Day Streak</Text>
           <View style={styles.streakRow}>
             <Text style={styles.streakNumber}>{streak}</Text>
@@ -98,10 +97,10 @@ export default function InsightsScreen() {
           {streak > 7 && (
             <Text style={styles.streakBonus}>You're on a roll!</Text>
           )}
-        </Animated.View>
+        </Appear>
 
         {/* Bar chart */}
-        <Animated.View entering={FadeInUp.delay(400).duration(600)} style={styles.chartSection}>
+        <Appear delay={400} style={styles.chartSection}>
           <Text style={styles.chartTitle}>Calories · Last 7 Days</Text>
           <View style={styles.chartContainer}>
             {weekLogs.map((log, i) => {
@@ -147,10 +146,10 @@ export default function InsightsScreen() {
               );
             })}
           </View>
-        </Animated.View>
+        </Appear>
 
         {/* Best / Worst day */}
-        <Animated.View entering={FadeInUp.delay(600).duration(600)} style={styles.highlightRow}>
+        <Appear delay={600} style={styles.highlightRow}>
           {bestDay && bestDay.totalCalories > 0 && (
             <View style={[styles.highlightCard, { borderColor: Colors.success + '40' }]}>
               <Text style={styles.highlightLabel}>Best Day</Text>
@@ -169,7 +168,7 @@ export default function InsightsScreen() {
               <Text style={styles.highlightDate}>{worstDay.date}</Text>
             </View>
           )}
-        </Animated.View>
+        </Appear>
       </ScrollView>
     </View>
   );

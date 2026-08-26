@@ -1,7 +1,8 @@
 import type { DailyLog, MealEntry } from '@/types';
-import { formatDateKey, parseDateKey } from '@/utils/dateHelpers';
+import { parseDateKey } from '@/utils/dateHelpers';
 import { getAllLocalMeals, getDailyLog, setDailyLog } from '@/utils/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { rowsToDailyLogs, type MealRow } from './dailyLogMapper';
 import { supabase } from './supabase';
 
 // Mutations write through to AsyncStorage first (instant, offline-safe),
@@ -17,21 +18,6 @@ const MIGRATION_FLAG_KEY = 'supabase_meals_migrated';
 // realistic offline gaps; online reads re-sign on every refetch anyway.
 const PHOTO_URL_TTL_SECONDS = 60 * 60 * 24 * 7;
 
-interface MealRow {
-  id: string;
-  meal_type: MealEntry['mealType'];
-  photo_path: string | null;
-  user_note: string | null;
-  food_name: string;
-  description: string | null;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  confidence: MealEntry['confidence'];
-  logged_at: string;
-}
-
 async function signedPhotoUrls(paths: string[]): Promise<Record<string, string>> {
   if (paths.length === 0) return {};
   const { data, error } = await supabase.storage
@@ -44,42 +30,6 @@ async function signedPhotoUrls(paths: string[]): Promise<Record<string, string>>
     if (entry.signedUrl && !entry.error) map[entry.path ?? ''] = entry.signedUrl;
   }
   return map;
-}
-
-function rowsToDailyLogs(rows: MealRow[], dates: string[], photoUrls: Record<string, string>): Map<string, DailyLog> {
-  const byDate = new Map<string, DailyLog>(
-    dates.map((date) => [
-      date,
-      { date, meals: [], totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0 },
-    ])
-  );
-
-  for (const row of rows) {
-    const date = formatDateKey(new Date(row.logged_at));
-    const log = byDate.get(date);
-    if (!log) continue; // outside the requested range
-
-    log.meals.push({
-      id: row.id,
-      timestamp: row.logged_at,
-      mealType: row.meal_type,
-      photoUri: row.photo_path ? photoUrls[row.photo_path] ?? '' : '',
-      userNote: row.user_note ?? '',
-      foodName: row.food_name,
-      description: row.description ?? '',
-      calories: row.calories,
-      protein: row.protein,
-      carbs: row.carbs,
-      fat: row.fat,
-      confidence: row.confidence,
-    });
-    log.totalCalories += row.calories;
-    log.totalProtein += row.protein;
-    log.totalCarbs += row.carbs;
-    log.totalFat += row.fat;
-  }
-
-  return byDate;
 }
 
 async function uploadMealPhoto(userId: string, meal: MealEntry): Promise<string | null> {

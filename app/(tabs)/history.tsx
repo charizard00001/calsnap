@@ -7,8 +7,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-
+import { Appear } from '@/components/Appear';
 import MealCard from '@/components/MealCard';
 import MealDetailModal from '@/components/MealDetailModal';
 import ParticleBackground from '@/components/ParticleBackground';
@@ -55,7 +54,7 @@ export default function HistoryScreen() {
         <Text style={styles.subtitle}>Last 30 days</Text>
 
         {/* Calendar grid */}
-        <Animated.View entering={FadeInUp.duration(600)} style={styles.calendarGrid}>
+        <Appear style={styles.calendarGrid}>
           {logs.map((log, i) => {
             const date = dates[i];
             const dayDate = parseDateKey(date);
@@ -87,20 +86,20 @@ export default function HistoryScreen() {
               </Pressable>
             );
           })}
-        </Animated.View>
+        </Appear>
 
         {/* Selected day detail */}
         {selectedLog && selectedDate && (
-          <Animated.View entering={FadeIn.duration(400)} style={styles.detailSection}>
+          <Appear from="none" duration={400} style={styles.detailSection}>
             <Text style={styles.detailTitle}>
               📜 {formatDisplayDate(parseDateKey(selectedDate))}
             </Text>
 
             <View style={styles.detailStats}>
-              <StatBadge label="Energy" value={`${selectedLog.totalCalories} kcal`} color={Colors.accentWarm} />
-              <StatBadge label="STR" value={`${selectedLog.totalProtein}g`} color={Colors.accentHot} />
-              <StatBadge label="AGI" value={`${selectedLog.totalCarbs}g`} color={Colors.accentGold} />
-              <StatBadge label="DEF" value={`${selectedLog.totalFat}g`} color={Colors.accentCool} />
+              <StatBadge label="Calories" value={`${selectedLog.totalCalories}`} color={Colors.accentWarm} />
+              <StatBadge label="Protein" value={`${selectedLog.totalProtein}g`} color={Colors.accentHot} />
+              <StatBadge label="Carbs" value={`${selectedLog.totalCarbs}g`} color={Colors.accentGold} />
+              <StatBadge label="Fat" value={`${selectedLog.totalFat}g`} color={Colors.accentCool} />
             </View>
 
             {selectedLog.meals.length > 0 ? (
@@ -110,7 +109,7 @@ export default function HistoryScreen() {
             ) : (
               <Text style={styles.noMeals}>No meals logged this day</Text>
             )}
-          </Animated.View>
+          </Appear>
         )}
       </ScrollView>
 

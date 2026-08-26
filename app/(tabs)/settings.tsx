@@ -8,8 +8,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-
+import { Appear } from '@/components/Appear';
 import ParticleBackground from '@/components/ParticleBackground';
 import { BorderRadius, Colors, FontSizes, Spacing } from '@/constants/theme';
 import { useGoals, useUpdateGoals } from '@/hooks/useGoals';
@@ -132,7 +131,7 @@ export default function SettingsScreen() {
         <Text style={styles.subtitle}>Adjust your daily goals</Text>
 
         {/* Name */}
-        <Animated.View entering={FadeInUp.duration(600)}>
+        <Appear>
           <SettingsRow label="Display Name" color={Colors.accentPrimary}>
             <TextInput
               style={styles.input}
@@ -143,10 +142,10 @@ export default function SettingsScreen() {
               placeholderTextColor={Colors.textMuted}
             />
           </SettingsRow>
-        </Animated.View>
+        </Appear>
 
         {/* Calorie Goal */}
-        <Animated.View entering={FadeInUp.delay(100).duration(600)}>
+        <Appear delay={100}>
           <SettingsRow label="Daily Calorie Goal" color={Colors.accentWarm}>
             <View style={styles.inputRow}>
               <TextInput
@@ -161,10 +160,10 @@ export default function SettingsScreen() {
               <Text style={styles.inputUnit}>kcal</Text>
             </View>
           </SettingsRow>
-        </Animated.View>
+        </Appear>
 
         {/* Protein Goal */}
-        <Animated.View entering={FadeInUp.delay(200).duration(600)}>
+        <Appear delay={200}>
           <SettingsRow label="Daily Protein Goal" color={Colors.accentHot}>
             <View style={styles.inputRow}>
               <TextInput
@@ -179,10 +178,10 @@ export default function SettingsScreen() {
               <Text style={styles.inputUnit}>g</Text>
             </View>
           </SettingsRow>
-        </Animated.View>
+        </Appear>
 
         {/* Danger Zone */}
-        <Animated.View entering={FadeInUp.delay(400).duration(600)} style={styles.dangerZone}>
+        <Appear delay={400} style={styles.dangerZone}>
           <Text style={styles.dangerTitle}>☠️ Danger Zone</Text>
 
           <Pressable onPress={handleSignOut} style={styles.dangerButton}>
@@ -220,7 +219,7 @@ export default function SettingsScreen() {
               Deletes your account, all meals, and all photos for good
             </Text>
           </Pressable>
-        </Animated.View>
+        </Appear>
 
         <View style={styles.legalRow}>
           <Link href="/privacy" style={styles.legalLink}>Privacy Policy</Link>

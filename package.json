@@ -8,6 +8,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "export:web": "expo export --platform web",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "postinstall": "patch-package"
   },
   "dependencies": {
@@ -55,7 +58,8 @@
     "@types/react": "~19.1.10",
     "@vercel/node": "^3.2.24",
     "patch-package": "^8.0.1",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^2.1.9"
   },
   "private": true
 }

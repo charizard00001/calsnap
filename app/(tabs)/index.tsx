@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import Animated, {
     Easing,
-    FadeInUp,
     useAnimatedStyle,
     useSharedValue,
     withRepeat,
@@ -20,6 +19,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 
+import { Appear } from '@/components/Appear';
 import MacroCard from '@/components/MacroCard';
 import MealCard from '@/components/MealCard';
 import MealDetailModal from '@/components/MealDetailModal';
@@ -91,7 +91,7 @@ export default function DashboardScreen() {
   const headerComponent = useMemo(() => (
     <>
       {/* Header */}
-      <Animated.View entering={FadeInUp.duration(600)} style={styles.header}>
+      <Appear style={styles.header}>
         <View>
           <Text style={styles.greetingName}>Hey, {goals.name}</Text>
           <Text style={styles.dayCounter}>🔥 Day {dayNumber} streak</Text>
@@ -104,15 +104,15 @@ export default function DashboardScreen() {
         >
           <Text style={styles.settingsIcon}>⚙️</Text>
         </Pressable>
-      </Animated.View>
+      </Appear>
 
       {/* Calorie Ring */}
-      <Animated.View entering={FadeInUp.delay(200).duration(600)} style={styles.ringContainer}>
+      <Appear delay={200} style={styles.ringContainer}>
         <ProgressRing consumed={todayLog.totalCalories} goal={goals.calorieGoal} />
-      </Animated.View>
+      </Appear>
 
       {/* Macro Cards */}
-      <Animated.View entering={FadeInUp.delay(400).duration(600)} style={styles.macroRow}>
+      <Appear delay={400} style={styles.macroRow}>
         <MacroCard
           {...MacroThemes.protein}
           value={todayLog.totalProtein}
@@ -128,13 +128,13 @@ export default function DashboardScreen() {
           value={todayLog.totalFat}
           goal={fatGoal}
         />
-      </Animated.View>
+      </Appear>
 
       {/* Section title */}
-      <Animated.View entering={FadeInUp.delay(600).duration(600)} style={styles.sectionHeader}>
+      <Appear delay={600} style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Today's Meals</Text>
         <Text style={styles.mealCount}>{todayLog.meals.length} logged</Text>
-      </Animated.View>
+      </Appear>
     </>
   ), [goals.name, dayNumber, todayFormatted, todayLog, proteinGoal, carbsGoal, fatGoal, router]);
 

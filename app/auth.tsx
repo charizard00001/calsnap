@@ -9,8 +9,8 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
 
+import { Appear } from '@/components/Appear';
 import CrazyButton from '@/components/CrazyButton';
 import ParticleBackground from '@/components/ParticleBackground';
 import { Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
@@ -90,7 +90,7 @@ export default function AuthScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View entering={FadeIn.duration(800)} style={styles.content}>
+        <Appear from="none" duration={800} style={styles.content}>
           <Text style={styles.title}>CalSnap</Text>
           <Text style={styles.subtitle}>
             {mode === 'signIn' ? 'Welcome back' : "Let's get started"}
@@ -159,7 +159,7 @@ export default function AuthScreen() {
               <Text style={styles.forgotText}>Forgot password?</Text>
             </Pressable>
           )}
-        </Animated.View>
+        </Appear>
       </KeyboardAvoidingView>
     </View>
   );

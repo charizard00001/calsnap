@@ -8,8 +8,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
-
+import { Appear } from '@/components/Appear';
 import CrazyButton from '@/components/CrazyButton';
 import ParticleBackground from '@/components/ParticleBackground';
 import { Colors, FontSizes, Gradients, Spacing } from '@/constants/theme';
@@ -63,7 +62,7 @@ export default function ResetPasswordScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View entering={FadeIn.duration(600)} style={styles.content}>
+        <Appear from="none" style={styles.content}>
           <Text style={styles.title}>Set New Password</Text>
 
           {done ? (
@@ -103,7 +102,7 @@ export default function ResetPasswordScreen() {
               </CrazyButton>
             </>
           )}
-        </Animated.View>
+        </Appear>
       </KeyboardAvoidingView>
     </View>
   );
