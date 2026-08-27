@@ -30,13 +30,15 @@ const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// OpenRouter's free-model lineup rotates — verified working against
-// openrouter.ai/api/v1/models on 2026-08-14. Override via
-// OPENROUTER_FALLBACK_MODEL without a code change if this stops being
-// free/available. Observed latency on the shared free queue ranged from
-// a few seconds to ~40s under contention — acceptable for a fallback
-// path, not for primary traffic.
-const DEFAULT_OPENROUTER_FALLBACK_MODEL = 'nvidia/nemotron-nano-12b-v2-vl:free';
+// OpenRouter's free-model lineup rotates, and it rotates faster than you'd
+// think: the model pinned here on 2026-08-14 had been delisted by 08-27,
+// which meant the fallback silently didn't exist and a Gemini rate-limit
+// became a hard failure for the user instead of a slower success. Re-checked
+// against openrouter.ai/api/v1/models on 2026-08-27. Override via
+// OPENROUTER_FALLBACK_MODEL without a code change when this one goes too.
+// Observed latency on the shared free queue ranges from a few seconds to
+// ~40s under contention — fine for a fallback, not for primary traffic.
+const DEFAULT_OPENROUTER_FALLBACK_MODEL = 'google/gemma-4-31b-it:free';
 
 const MAX_NOTE_LENGTH = 500;
 // ~2MB of base64 is comfortably more than the 800px/0.7-quality JPEGs the
