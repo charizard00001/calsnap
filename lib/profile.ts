@@ -1,5 +1,6 @@
 import type { UserGoals } from '@/types';
 import { getUserGoals, saveUserGoals } from '@/utils/storage';
+import { getCurrentUserId } from './currentUser';
 import { supabase } from './supabase';
 
 export const DEFAULT_GOALS: UserGoals = {
@@ -11,8 +12,7 @@ export const DEFAULT_GOALS: UserGoals = {
 
 // Best-effort sync of goals to the user's Supabase profile row.
 export async function syncProfileGoals(goals: UserGoals): Promise<void> {
-  const { data } = await supabase.auth.getUser();
-  const userId = data.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) return;
 
   await supabase
@@ -35,8 +35,7 @@ export async function syncProfileGoals(goals: UserGoals): Promise<void> {
  * per-user local flag.
  */
 export async function fetchOnboarded(): Promise<boolean | null> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) return null;
 
   const { data, error } = await supabase
@@ -51,8 +50,7 @@ export async function fetchOnboarded(): Promise<boolean | null> {
 
 /** Writes the chosen goals and marks onboarding complete, in one update. */
 export async function completeOnboarding(goals: UserGoals): Promise<void> {
-  const { data } = await supabase.auth.getUser();
-  const userId = data.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) return;
 
   await supabase
@@ -72,8 +70,7 @@ export async function fetchGoals(): Promise<UserGoals> {
   const cached = await getUserGoals();
   const fallback = cached ?? DEFAULT_GOALS;
 
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) return fallback;
 
   const { data, error } = await supabase

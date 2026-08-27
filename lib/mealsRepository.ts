@@ -2,6 +2,9 @@ import type { DailyLog, MealEntry } from '@/types';
 import { parseDateKey } from '@/utils/dateHelpers';
 import { getAllLocalMeals, getDailyLog, setDailyLog } from '@/utils/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { getCurrentUserId } from './currentUser';
+import { getPendingIds, markSynced } from './pendingMeals';
 import { rowsToDailyLogs, type MealRow } from './dailyLogMapper';
 import { supabase } from './supabase';
 
@@ -32,9 +35,28 @@ async function signedPhotoUrls(paths: string[]): Promise<Record<string, string>>
   return map;
 }
 
+/** Downscale to 1280px JPEG for storage; falls back to the original on error. */
+async function compressForUpload(uri: string): Promise<string> {
+  try {
+    const out = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 1280 } }],
+      { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+    );
+    return out.uri;
+  } catch {
+    return uri;
+  }
+}
+
 async function uploadMealPhoto(userId: string, meal: MealEntry): Promise<string | null> {
   try {
-    const response = await fetch(meal.photoUri);
+    // The picker hands back a full-resolution frame — several megabytes on a
+    // modern phone, and uploading that was the slowest thing in the whole
+    // logging flow. A 1280px JPEG is far more than the card and the
+    // full-screen viewer ever display.
+    const compressed = await compressForUpload(meal.photoUri);
+    const response = await fetch(compressed);
     const arrayBuffer = await response.arrayBuffer();
     const path = `${userId}/${meal.id}.jpg`;
 
@@ -49,18 +71,24 @@ async function uploadMealPhoto(userId: string, meal: MealEntry): Promise<string 
   }
 }
 
+/**
+ * Pushes a newly logged meal up.
+ *
+ * The row goes in FIRST, on its own, and the photo follows. It used to be the
+ * other way round — the insert waited on a multi-megabyte upload, so for five
+ * to fifteen seconds the meal existed only on the device. Any refetch in that
+ * window came back without it, which is what made a just-logged meal appear,
+ * vanish, and then come back.
+ */
 export async function syncMealToSupabase(meal: MealEntry): Promise<void> {
-  const { data } = await supabase.auth.getUser();
-  const userId = data.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) return;
 
-  const photoPath = await uploadMealPhoto(userId, meal);
-
-  await supabase.from('meals').insert({
+  const { error } = await supabase.from('meals').insert({
     id: meal.id,
     user_id: userId,
     meal_type: meal.mealType,
-    photo_path: photoPath,
+    photo_path: null,
     user_note: meal.userNote,
     food_name: meal.foodName,
     description: meal.description,
@@ -71,14 +99,23 @@ export async function syncMealToSupabase(meal: MealEntry): Promise<void> {
     confidence: meal.confidence,
     logged_at: meal.timestamp,
   });
+  if (error) return;
+
+  markSynced(meal.id);
+
+  if (!meal.photoUri) return;
+  const photoPath = await uploadMealPhoto(userId, meal);
+  if (photoPath) {
+    await supabase.from('meals').update({ photo_path: photoPath }).eq('id', meal.id);
+  }
 }
 
 export async function updateMealInSupabase(
   mealId: string,
   updates: Partial<Pick<MealEntry, 'foodName' | 'calories' | 'protein' | 'carbs' | 'fat' | 'mealType' | 'userNote'>>
 ): Promise<void> {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return;
+  const userId = await getCurrentUserId();
+  if (!userId) return;
 
   const row: Record<string, unknown> = {};
   if (updates.foodName !== undefined) row.food_name = updates.foodName;
@@ -93,8 +130,8 @@ export async function updateMealInSupabase(
 }
 
 export async function deleteMealFromSupabase(mealId: string): Promise<void> {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return;
+  const userId = await getCurrentUserId();
+  if (!userId) return;
 
   await supabase.from('meals').delete().eq('id', mealId);
 }
@@ -104,8 +141,7 @@ export async function deleteMealFromSupabase(mealId: string): Promise<void> {
 // pulls the rows straight back. These delete remotely first, then locally.
 
 export async function deleteMealsForDate(date: string): Promise<void> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) return;
 
   const dayStart = parseDateKey(date).toISOString();
@@ -129,8 +165,7 @@ export async function deleteMealsForDate(date: string): Promise<void> {
 }
 
 export async function deleteAllMealsFromSupabase(): Promise<void> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) return;
 
   const { data: rows } = await supabase
@@ -161,8 +196,7 @@ export async function migrateLocalMealsToSupabase(): Promise<void> {
   const alreadyMigrated = await AsyncStorage.getItem(MIGRATION_FLAG_KEY);
   if (alreadyMigrated) return;
 
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId) return;
 
   const { count } = await supabase
@@ -187,8 +221,7 @@ export async function migrateLocalMealsToSupabase(): Promise<void> {
 // by local day, and refreshes the AsyncStorage cache for each day. Falls
 // back to whatever's cached locally when signed out or offline.
 export async function fetchDailyLogsRange(dates: string[]): Promise<DailyLog[]> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
+  const userId = await getCurrentUserId();
   if (!userId || dates.length === 0) {
     return Promise.all(dates.map(getDailyLog));
   }
@@ -209,11 +242,51 @@ export async function fetchDailyLogsRange(dates: string[]): Promise<DailyLog[]> 
   }
 
   const paths = rows.map((r) => r.photo_path).filter((p): p is string => !!p);
-  const photoUrls = await signedPhotoUrls(paths);
+  // Signing is its own round trip; skip it entirely for a photo-less range.
+  const photoUrls = paths.length > 0 ? await signedPhotoUrls(paths) : {};
   const byDate = rowsToDailyLogs(rows as MealRow[], dates, photoUrls);
 
-  await Promise.all(dates.map((date) => setDailyLog(date, byDate.get(date)!)));
-  return dates.map((date) => byDate.get(date)!);
+  const merged = await mergePendingMeals(dates, byDate);
+
+  await Promise.all(dates.map((date) => setDailyLog(date, merged.get(date)!)));
+  return dates.map((date) => merged.get(date)!);
+}
+
+/**
+ * Keeps locally-logged meals the server hasn't confirmed yet. Without this a
+ * refetch that lands mid-sync returns the day without them and writes that
+ * back over the local cache, so the meal blinks out of the UI.
+ */
+async function mergePendingMeals(
+  dates: string[],
+  byDate: Map<string, DailyLog>
+): Promise<Map<string, DailyLog>> {
+  const pending = await getPendingIds();
+  if (pending.size === 0) return byDate;
+
+  await Promise.all(
+    dates.map(async (date) => {
+      const server = byDate.get(date);
+      if (!server) return;
+
+      const seen = new Set(server.meals.map((m) => m.id));
+      const local = await getDailyLog(date);
+      const missing = local.meals.filter((m) => pending.has(m.id) && !seen.has(m.id));
+      if (missing.length === 0) return;
+
+      const meals = [...server.meals, ...missing];
+      byDate.set(date, {
+        date,
+        meals,
+        totalCalories: meals.reduce((s, m) => s + m.calories, 0),
+        totalProtein: meals.reduce((s, m) => s + m.protein, 0),
+        totalCarbs: meals.reduce((s, m) => s + m.carbs, 0),
+        totalFat: meals.reduce((s, m) => s + m.fat, 0),
+      });
+    })
+  );
+
+  return byDate;
 }
 
 export async function fetchDailyLog(date: string): Promise<DailyLog> {

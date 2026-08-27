@@ -43,6 +43,31 @@ const MAX_NOTE_LENGTH = 500;
 // client sends; this just guards against an absurd payload reaching either API.
 const MAX_IMAGE_BASE64_LENGTH = 3_000_000;
 
+/** Shape Gemini must return, so the reply needs no unwrapping or repair. */
+const NUTRITION_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    foodName: { type: 'STRING' },
+    description: { type: 'STRING' },
+    servingSize: { type: 'STRING' },
+    calories: { type: 'NUMBER' },
+    protein: { type: 'NUMBER' },
+    carbs: { type: 'NUMBER' },
+    fat: { type: 'NUMBER' },
+    confidence: { type: 'STRING', enum: ['low', 'medium', 'high'] },
+  },
+  required: [
+    'foodName',
+    'description',
+    'servingSize',
+    'calories',
+    'protein',
+    'carbs',
+    'fat',
+    'confidence',
+  ],
+} as const;
+
 async function callGemini(imageBase64: string, userNote: string): Promise<NutritionResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('Gemini not configured on server');
@@ -59,6 +84,18 @@ async function callGemini(imageBase64: string, userNote: string): Promise<Nutrit
           ],
         },
       ],
+      generationConfig: {
+        // 2.5 Flash thinks before answering by default, which on a
+        // look-at-the-plate-and-estimate task bought nothing and cost
+        // seconds — it was the single largest chunk of analysis latency.
+        thinkingConfig: { thinkingBudget: 0 },
+        // Ask for the object directly rather than JSON-inside-markdown:
+        // fewer output tokens, and nothing to unwrap before parsing.
+        responseMimeType: 'application/json',
+        responseSchema: NUTRITION_SCHEMA,
+        temperature: 0.2,
+        maxOutputTokens: 400,
+      },
     }),
   });
 
