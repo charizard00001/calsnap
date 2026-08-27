@@ -5,7 +5,16 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const TAB_BODY = 68;
+/** Height of the row the icons and labels actually live in. */
+const TAB_BODY = 58;
+
+/**
+ * How much of the bottom safe-area inset the bar reserves as empty space.
+ * The home indicator is a ~5pt pill sitting ~8pt off the bottom edge, so it
+ * needs far less clearance than the full 34pt inset iOS reports — reserving
+ * all of it left a slab of dead cream under the labels.
+ */
+const MAX_BOTTOM_RESERVE = 20;
 
 function TabItem({
   icon,
@@ -39,21 +48,23 @@ function TabItem({
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
 
+  // The bar is a solid cream slab against the dark app, so it absorbs the
+  // bottom inset itself — otherwise iOS leaves a dark strip beneath it. But
+  // it only reserves as much as the home indicator needs, not the whole inset.
+  const reserve = Math.min(insets.bottom, MAX_BOTTOM_RESERVE);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        // The bar is a solid cream slab against the dark app, so it has to
-        // absorb the home-indicator inset itself — otherwise iOS leaves a
-        // dark strip below it.
         tabBarStyle: {
           backgroundColor: Colors.paper,
           borderTopColor: Colors.ink,
           borderTopWidth: 4,
-          height: TAB_BODY + insets.bottom,
-          paddingBottom: insets.bottom,
-          paddingTop: 6,
+          height: TAB_BODY + reserve,
+          paddingBottom: reserve,
+          paddingTop: 4,
           elevation: 0,
         },
         tabBarItemStyle: {
@@ -105,12 +116,12 @@ const styles = StyleSheet.create({
   item: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 3,
     width: 76,
   },
   iconPad: {
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 4,
   },
   label: {
     fontFamily: Fonts.display,
