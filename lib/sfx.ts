@@ -8,7 +8,20 @@ import { Platform } from 'react-native';
  * haptics cover the same beats there.
  */
 
-export type SfxName = 'tap' | 'boing' | 'up' | 'down' | 'chime' | 'fanfare' | 'error';
+export type SfxName =
+  | 'tap'
+  | 'boing'
+  | 'up'
+  | 'down'
+  | 'chime'
+  | 'fanfare'
+  | 'error'
+  | 'nav';
+
+export interface SfxOptions {
+  /** Multiplies every frequency — 1 is the sound as written. */
+  pitch?: number;
+}
 
 const MUTE_KEY = 'sfx_muted';
 
@@ -88,7 +101,7 @@ function noise(ac: AudioContext, at: number, dur: number, freq: number, gain: nu
 }
 
 /** Fire a sound. Safe to call anywhere — it no-ops off web or when muted. */
-export function sfx(name: SfxName): void {
+export function sfx(name: SfxName, opts: SfxOptions = {}): void {
   if (muted) return;
   const ac = audio();
   if (!ac) return;
@@ -97,8 +110,15 @@ export function sfx(name: SfxName): void {
   if (ac.state === 'suspended') void ac.resume();
 
   const t = ac.currentTime;
+  const p = opts.pitch ?? 1;
 
   switch (name) {
+    case 'nav':
+      // Arcade selector: a square blip with a triangle a fifth above it, so
+      // the four tabs read as one instrument at four pitches.
+      tone(ac, { at: t, from: 520 * p, to: 780 * p, type: 'square', gain: 0.07, dur: 0.1 });
+      tone(ac, { at: t + 0.015, from: 780 * p, to: 1040 * p, gain: 0.05, dur: 0.11 });
+      break;
     case 'tap':
       tone(ac, { at: t, from: 620, to: 880, type: 'square', gain: 0.06, dur: 0.09 });
       break;
