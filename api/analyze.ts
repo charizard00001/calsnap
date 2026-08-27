@@ -113,6 +113,71 @@ async function callGemini(imageBase64: string, userNote: string): Promise<Nutrit
   return { ...parseNutritionJson(text), provider: 'gemini' };
 }
 
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+/**
+ * The Groq model ids the client may ask for. Kept as a whitelist so a
+ * client can't point the server at an arbitrary model.
+ *
+ * Both are vision-capable Qwen builds, measured against a real plate photo:
+ * 3.8 answers in about a second, 3.6 takes roughly twice that because it
+ * reasons first — which is why reasoning is turned off for it, otherwise it
+ * emits a <think> block and the JSON never parses.
+ */
+const GROQ_MODELS: Record<string, { model: string; extra: Record<string, unknown> }> = {
+  'qwen-3.8': {
+    model: 'qwen/qwen3.8-27b',
+    extra: { response_format: { type: 'json_object' } },
+  },
+  'qwen-3.6': {
+    model: 'qwen/qwen3.6-27b',
+    extra: { response_format: { type: 'json_object' }, reasoning_effort: 'none' },
+  },
+};
+
+async function callGroq(
+  choice: string,
+  imageBase64: string,
+  userNote: string
+): Promise<NutritionResult> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('Groq not configured on server');
+
+  const spec = GROQ_MODELS[choice];
+  if (!spec) throw new Error(`Unknown Groq model: ${choice}`);
+
+  const response = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: spec.model,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: buildPrompt(userNote) },
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } },
+          ],
+        },
+      ],
+      temperature: 0.2,
+      max_completion_tokens: 500,
+      ...spec.extra,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Groq API error (${response.status}): ${errorBody.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('No response text from Groq');
+
+  return { ...parseNutritionJson(text), provider: 'groq' };
+}
+
 async function callOpenRouterFallback(
   imageBase64: string,
   userNote: string
@@ -180,7 +245,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { imageBase64, userNote } = req.body ?? {};
+  const { imageBase64, userNote, model } = req.body ?? {};
 
   if (typeof imageBase64 !== 'string' || imageBase64.length === 0) {
     res.status(400).json({ error: 'imageBase64 is required' });
@@ -192,26 +257,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const note = typeof userNote === 'string' ? userNote.slice(0, MAX_NOTE_LENGTH) : '';
 
-  try {
-    const result = await callGemini(imageBase64, note);
-    res.status(200).json(result);
-    return;
-  } catch (geminiError) {
+  // The user's pick runs first; the other provider is the safety net. Groq's
+  // free tier is capped per minute on tokens and images are token-heavy, so
+  // it does refuse under a burst — that refusal has to become a slightly
+  // slower answer, never an error the user sees.
+  const choice = typeof model === 'string' ? model : '';
+  const chain: { name: string; run: () => Promise<NutritionResult> }[] =
+    choice === 'gemini-flash'
+      ? [
+          { name: 'gemini', run: () => callGemini(imageBase64, note) },
+          { name: 'groq', run: () => callGroq('qwen-3.8', imageBase64, note) },
+        ]
+      : [
+          {
+            name: 'groq',
+            run: () => callGroq(GROQ_MODELS[choice] ? choice : 'qwen-3.8', imageBase64, note),
+          },
+          { name: 'gemini', run: () => callGemini(imageBase64, note) },
+        ];
+
+  chain.push({ name: 'openrouter', run: () => callOpenRouterFallback(imageBase64, note) });
+
+  const failures: string[] = [];
+  for (const link of chain) {
     try {
-      const result = await callOpenRouterFallback(imageBase64, note);
+      const result = await link.run();
       res.status(200).json(result);
       return;
-    } catch (fallbackError) {
-      const geminiMsg = geminiError instanceof Error ? geminiError.message : 'unknown error';
-      const fallbackMsg =
-        fallbackError instanceof Error ? fallbackError.message : 'unknown error';
-      reportServerError('analyze.providers', fallbackError, {
-        userId: user.id,
-        geminiError: geminiMsg,
-      });
-      res.status(502).json({
-        error: `Analysis failed. Gemini: ${geminiMsg}. Fallback: ${fallbackMsg}`,
-      });
+    } catch (err) {
+      failures.push(`${link.name}: ${err instanceof Error ? err.message : 'unknown error'}`);
     }
   }
+
+  reportServerError('analyze.providers', new Error(failures.join(' | ')), {
+    userId: user.id,
+    choice,
+  });
+  res.status(502).json({ error: `Analysis failed. ${failures.join('. ')}` });
 }

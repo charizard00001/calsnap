@@ -1,3 +1,4 @@
+import { getAiModel } from '@/lib/aiModel';
 import { supabase } from '@/lib/supabase';
 import type { NutritionResult } from '@/types';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -46,7 +47,9 @@ async function callAnalyzeEndpoint(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
-    body: JSON.stringify({ imageBase64, userNote }),
+    // The server validates this against its own whitelist and falls back to
+    // the other provider on its own, so a stale or unknown id is harmless.
+    body: JSON.stringify({ imageBase64, userNote, model: getAiModel() }),
   });
 
   if (!response.ok) {

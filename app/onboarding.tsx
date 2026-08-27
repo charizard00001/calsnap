@@ -13,12 +13,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import ArcadeBg from '@/components/ui/ArcadeBg';
 import Confetti from '@/components/ui/Confetti';
+import ModelPicker from '@/components/ui/ModelPicker';
 import Icon from '@/components/ui/Icon';
 import Marquee from '@/components/ui/Marquee';
 import Snappy from '@/components/ui/Snappy';
 import Sticker from '@/components/ui/Sticker';
 import StickerPressable from '@/components/ui/StickerPressable';
+import { DEFAULT_AI_MODEL, modelById } from '@/constants/aiModels';
 import { Colors, Fonts } from '@/constants/theme';
+import { setAiModel } from '@/lib/aiModel';
 import { completeOnboarding } from '@/lib/profile';
 import { sfx } from '@/lib/sfx';
 import { supabase } from '@/lib/supabase';
@@ -26,7 +29,7 @@ import type { UserGoals } from '@/types';
 import { saveUserGoals, setOnboardingComplete } from '@/utils/storage';
 import { useOnboardingContext } from './_layout';
 
-const STEPS = 5;
+const STEPS = 6;
 const CAL_PRESETS = [1600, 2000, 2400];
 const PRO_PRESETS = [110, 150, 190];
 
@@ -39,6 +42,7 @@ export default function OnboardingScreen() {
   const [name, setName] = useState('');
   const [calorieGoal, setCalorieGoal] = useState(2000);
   const [proteinGoal, setProteinGoal] = useState(150);
+  const [aiModel, setAiModelChoice] = useState(DEFAULT_AI_MODEL);
   const [burst, setBurst] = useState(0);
 
   const next = () => {
@@ -58,6 +62,7 @@ export default function OnboardingScreen() {
     };
 
     await saveUserGoals(goals);
+    await setAiModel(aiModel);
     queryClient.setQueryData(['goals'], goals);
 
     const { data } = await supabase.auth.getUser();
@@ -100,7 +105,7 @@ export default function OnboardingScreen() {
             <View style={styles.stepBlock}>
               <Snappy size={112} mood="ready" />
               <Text style={styles.headline}>LET&apos;S GET{'\n'}YOU SET UP</Text>
-              <Text style={styles.sub}>Four quick questions. Then you eat.</Text>
+              <Text style={styles.sub}>A few quick questions. Then you eat.</Text>
               <PrimaryButton label="BEGIN" onPress={next} />
             </View>
           )}
@@ -159,6 +164,17 @@ export default function OnboardingScreen() {
 
           {step === 4 && (
             <View style={styles.stepBlock}>
+              <Text style={styles.headline}>WHO READS{'\n'}YOUR PLATE?</Text>
+              <Text style={styles.sub}>
+                The AI that does the maths. Change it any time in your profile.
+              </Text>
+              <ModelPicker value={aiModel} onChange={setAiModelChoice} />
+              <PrimaryButton label="CONTINUE" onPress={next} />
+            </View>
+          )}
+
+          {step === 5 && (
+            <View style={styles.stepBlock}>
               <View style={styles.readyWrap}>
                 <Confetti trigger={burst} count={18} spread={95} />
                 <Snappy size={118} mood="streak" />
@@ -172,6 +188,10 @@ export default function OnboardingScreen() {
                 <Sticker color={Colors.accentPrimary} radius={14} shadow={4} contentStyle={styles.summaryChip}>
                   <Text style={styles.summaryValue}>{proteinGoal}g</Text>
                   <Text style={styles.summaryLabel}>PROTEIN</Text>
+                </Sticker>
+                <Sticker color={Colors.accentLime} radius={14} shadow={4} contentStyle={styles.summaryChip}>
+                  <Text style={styles.summaryValue}>{modelById(aiModel).label}</Text>
+                  <Text style={styles.summaryLabel}>ENGINE</Text>
                 </Sticker>
               </View>
               <PrimaryButton label="START SNAPPING" onPress={handleComplete} color={Colors.accentLime} />
@@ -420,6 +440,8 @@ const styles = StyleSheet.create({
   summaryRow: {
     flexDirection: 'row',
     gap: 11,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   summaryChip: {
     paddingHorizontal: 16,

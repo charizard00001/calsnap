@@ -10,7 +10,7 @@ export interface NutritionResult {
   carbs: number;
   fat: number;
   confidence: 'low' | 'medium' | 'high';
-  provider: 'gemini' | 'openrouter';
+  provider: 'gemini' | 'groq' | 'openrouter';
 }
 
 export function buildPrompt(userNote: string): string {

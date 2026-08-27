@@ -22,10 +22,12 @@ import ArcadeBg from '@/components/ui/ArcadeBg';
 import Chip from '@/components/ui/Chip';
 import Icon from '@/components/ui/Icon';
 import Marquee from '@/components/ui/Marquee';
+import ModelPicker from '@/components/ui/ModelPicker';
 import Snappy from '@/components/ui/Snappy';
 import Sticker from '@/components/ui/Sticker';
 import StickerPressable from '@/components/ui/StickerPressable';
 import { Colors, Fonts } from '@/constants/theme';
+import { getAiModel, loadAiModel, setAiModel } from '@/lib/aiModel';
 import { useGoals, useUpdateGoals } from '@/hooks/useGoals';
 import { deleteAccount } from '@/lib/account';
 import { confirmAction, notify } from '@/lib/confirm';
@@ -47,6 +49,12 @@ export default function SettingsScreen() {
   const [proGoal, setProGoal] = useState(String(goals.proteinGoal));
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [soundOn, setSoundOn] = useState(!isMuted());
+  const [aiModel, setAiModelChoice] = useState(getAiModel());
+
+  // The stored choice resolves from AsyncStorage a tick after mount.
+  useEffect(() => {
+    loadAiModel().then(setAiModelChoice).catch(() => {});
+  }, []);
 
   // useGoals() starts on placeholderData (DEFAULT_GOALS) and resolves the
   // real profile a beat later. On a cold load straight to this screen the
@@ -241,6 +249,21 @@ export default function SettingsScreen() {
           </View>
           <SoundToggle on={soundOn} onToggle={toggleSound} />
         </View>
+
+        <SectionTitle label="ANALYSIS ENGINE" color={Colors.accentLime} />
+
+        <Text style={styles.engineNote}>
+          Reads your photo and estimates the macros. If your pick is busy, CalSnap
+          falls back to Gemini automatically so a snap never fails.
+        </Text>
+
+        <ModelPicker
+          value={aiModel}
+          onChange={(id) => {
+            setAiModelChoice(id);
+            void setAiModel(id);
+          }}
+        />
 
         <SectionTitle label="DANGER ZONE" color={Colors.accentHot} />
 
@@ -519,6 +542,13 @@ const styles = StyleSheet.create({
   onInk: {
     color: Colors.ink,
     opacity: 0.72,
+  },
+  engineNote: {
+    fontFamily: Fonts.body,
+    fontSize: 11,
+    lineHeight: 16,
+    color: Colors.textSecondary,
+    marginTop: -4,
   },
   legalRow: {
     flexDirection: 'row',
