@@ -29,7 +29,7 @@ export const AI_MODELS: AiModelOption[] = [
     provider: 'groq',
     label: 'QWEN 3.8',
     blurb: 'Quickest read on a plate. Best all-rounder.',
-    speed: '~1s',
+    speed: '~1 SEC',
     recommended: true,
   },
   {
@@ -37,14 +37,14 @@ export const AI_MODELS: AiModelOption[] = [
     provider: 'groq',
     label: 'QWEN 3.6',
     blurb: 'Thinks a little longer before answering.',
-    speed: '~2s',
+    speed: '~2 SEC',
   },
   {
     id: 'gemini-flash',
     provider: 'gemini',
     label: 'GEMINI FLASH',
     blurb: "Google's model. Slower, strong on food it knows.",
-    speed: '~3s',
+    speed: '~3 SEC',
   },
 ];
 
