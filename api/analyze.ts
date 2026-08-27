@@ -293,5 +293,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     userId: user.id,
     choice,
   });
-  res.status(502).json({ error: `Analysis failed. ${failures.join('. ')}` });
+
+  // The raw provider text is for the logs above, not the screen — it carries
+  // org ids and billing URLs, and tells the person holding the phone nothing
+  // they can act on. Every provider being busy at once is transient, so say
+  // that and point at the one thing that does help: try again.
+  const allBusy = failures.every((f) => f.includes('429'));
+  res.status(502).json({
+    error: allBusy
+      ? 'Every analysis engine is busy right now. Give it a few seconds and snap again.'
+      : "Couldn't read that photo. Try again, or retake it with the plate more in frame.",
+  });
 }
