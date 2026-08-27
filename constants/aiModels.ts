@@ -43,7 +43,7 @@ export const AI_MODELS: AiModelOption[] = [
     id: 'gemini-flash',
     provider: 'gemini',
     label: 'GEMINI FLASH',
-    blurb: "Google's model. Slower, strong on food it knows.",
+    blurb: "Google's model. Slower, but steady.",
     speed: '~3 SEC',
   },
 ];
